@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar";
 import Link from "next/link";
 import { IProducto } from "../models/IProducto";
+import { ITienda } from "../models/ITienda";
 import "public/estilo.css";
 
 interface SubFilter {
@@ -68,6 +69,7 @@ function ProductosPage() {
   const [productos, setProductos] = useState<IProducto[]>([]);
   const [filters, setFilters] = useState<Filter[]>(filtersData);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [tiendas, setTiendas] = useState<ITienda[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -87,6 +89,33 @@ function ProductosPage() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    async function fetchTiendas() {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}Tiendas`,
+          {
+            cache: "no-cache",
+          }
+        );
+        const data = await response.json();
+        setTiendas(data);
+      } catch (error) {
+        console.error("Error fetching tiendas: ", error);
+      }
+    }
+
+    fetchTiendas();
+  }, []);
+
+  const tiendasDictionary = tiendas.reduce<{ [key: string]: string }>(
+    (dict, tienda) => {
+      dict[tienda.id] = tienda.nombre;
+      return dict;
+    },
+    {}
+  );
 
   const handleFilterChange = (filterId: string) => {
     setFilters((prevFilters) =>
@@ -139,7 +168,7 @@ function ProductosPage() {
   });
 
   return (
-    <div className="flex">
+    <div className="flex static">
       <Sidebar filters={filters} handleFilterChange={handleFilterChange} />
 
       <div className="flex-1 p-8">
@@ -152,7 +181,7 @@ function ProductosPage() {
         <h1 className="text-3xl font-bold mb-4 text-center text-brown mt-4 dark:text-white">
           Productos
         </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 ">
+        <div className="static grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 ">
           {filteredProductos.map((producto) => (
             <div key={producto.id} className="p-2">
               <div>
@@ -163,17 +192,16 @@ function ProductosPage() {
                       cursor-pointer duration-150 hover:scale-105 hover:shadow-md
                       dark:bg-gray-700 dark:border-gray-800 rounded-l-lg"
                   >
-                    
                     <div
                       className="w-full md:w-1/3 bg-white grid place-items-center
                     dark:bg-gray-700 border-gray-600 rounded-l-lg"
                     >
                       <Link href={`/Productos/Detalles/${producto.id}`}>
-                      <img
-                        src={producto.urlsImagenes[0]}
-                        alt="imagen cafe"
-                        className="rounded-xl"
-                      />
+                        <img
+                          src={producto.urlsImagenes[0]}
+                          alt="imagen cafe"
+                          className="rounded-xl"
+                        />
                       </Link>
                     </div>
                     <div
@@ -184,9 +212,11 @@ function ProductosPage() {
                         {/* Estrellas nuevas */}
                         <div className="rating flex items-center">
                           <p className="text-gray-600 font-bold text-sm ml-1">
-                          <span className="text-gray-500 font-normal dark:text-white">({producto.interacciones.visitas} visitas)</span>
+                            <span className="text-gray-500 font-normal dark:text-white">
+                              ({producto.interacciones.visitas} visitas)
+                            </span>
                           </p>
-                          
+
                           {Array.from(
                             { length: producto.interacciones.evaluacion },
                             (_, i) => i
@@ -205,7 +235,7 @@ function ProductosPage() {
                           ))}
                           <br />
                           <p className="text-gray-600 font-bold text-sm ml-1 dark:text-white">
-                          {producto.interacciones.evaluacion}
+                            {producto.interacciones.evaluacion}
                           </p>
                         </div>
 
@@ -236,9 +266,10 @@ function ProductosPage() {
                             (MXN)
                           </span>
                         </p>
-                        <p className=" text-gray-500 text-base dark:text-white">
-                          {producto.tienda}
-                        </p>
+
+                        {/* <p className=" text-gray-500 text-base dark:text-white">
+                          Tienda: {tiendasDictionary[producto.tienda]}
+                        </p> */}
                       </Link>
                       <div className="flex flex-wrap items-center justify-center mt-2">
                         <Link

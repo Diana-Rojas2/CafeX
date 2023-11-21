@@ -1,9 +1,9 @@
-
 const Cart: React.FC<{ cartOpen: boolean, toggleCart: () => void }> = ({ cartOpen, toggleCart }) => {
   return (
-    <div
-      className={`fixed right-0 top-0 max-w-xs w-full h-full px-6 py-4 transition duration-300 transform overflow-y-auto bg-white border-l-2 border-gray-300 ${cartOpen ? 'translate-x-0 ease-out' : 'translate-x-full ease-in'}`}
-    >
+    <div className="float-right">
+  <div
+    className={`fixed right-0 top-0 max-w-xs w-full h-full px-6 py-4 transition duration-300 transform overflow-y-auto bg-white border-l-2 border-gray-300 ${cartOpen ? 'translate-x-0 ease-out z-50' : 'translate-x-full ease-in z-50'}`}
+  >
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-medium text-gray-700">Tu carito</h3>
         <button onClick={toggleCart} className="text-gray-600 focus:outline-none">
@@ -43,6 +43,7 @@ const Cart: React.FC<{ cartOpen: boolean, toggleCart: () => void }> = ({ cartOpe
           <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
         </svg>
       </a>
+    </div>
     </div>
   );
 };

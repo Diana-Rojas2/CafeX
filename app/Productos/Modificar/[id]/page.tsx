@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export interface Props {
-  params: { id: number};
+  params: { id: number };
 }
 
 const ModificarProductosPage = ({ params }: Props) => {
@@ -20,18 +20,23 @@ const ModificarProductosPage = ({ params }: Props) => {
   useEffect(() => {
     axios.get("http://localhost:8080/Categoria").then((res) => {
       setCategorias(res.data);
-        axios
-          .get(`http://localhost:8080/Producto/Id/${params.id}`)
-          .then((prod) => {
-            setValue("id", prod.data.id);
-            setValue("nombre", prod.data.nombre);
-            setValue("descripcion", prod.data.descripcion);
-            setValue("precio", prod.data.precio);
-            setValue("idCategoria", prod.data.idCategoria);
-          });
- 
+      axios
+        .get(`http://localhost:8080/Producto/Id/${params.id}`)
+        .then((prod) => {
+          const productoSeleccionado = prod.data.find((p: { id: number }) => p.id === params.id);
+          if (productoSeleccionado) {
+            setValue("id", productoSeleccionado.id);
+            setValue("nombre", productoSeleccionado.nombre);
+            setValue("descripcion", productoSeleccionado.descripcion);
+            setValue("precio", productoSeleccionado.precio);
+            setValue("categoria", productoSeleccionado.categoria);
+          } else {
+            console.error("No se encontró el producto con el ID proporcionado.");
+          }
+          
+        });
     });
-  }, []);
+  }, [params.id, setValue]);
 
   const onSubmit = handleSubmit(async (formData) => {
     await axios.put(`http://localhost:8080/Producto/${params.id}`, formData);
@@ -51,7 +56,7 @@ const ModificarProductosPage = ({ params }: Props) => {
           <input type="hidden" {...register("id")} />
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="nombre"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Nombre
@@ -60,12 +65,12 @@ const ModificarProductosPage = ({ params }: Props) => {
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-red rounded py-3 px-4 mb-3"
               {...register("nombre")}
               type="text"
-              placeholder="Nombre del producto"
+              id="nombre"
             />
           </div>
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="descripcion"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Descripción
@@ -73,12 +78,13 @@ const ModificarProductosPage = ({ params }: Props) => {
             <textarea
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"
               {...register("descripcion")}
+              id="descripcion"
               placeholder="Descripción del producto"
             />
           </div>
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="precio"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Precio
@@ -86,6 +92,7 @@ const ModificarProductosPage = ({ params }: Props) => {
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
               {...register("precio")}
+              id="precio"
               type="text"
               placeholder="Precio del producto"
             />
@@ -93,14 +100,15 @@ const ModificarProductosPage = ({ params }: Props) => {
 
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="categoria"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Categoría
             </label>
             <select
               className="form-select appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
-              {...register("idCategoria")}
+              {...register("categoria")}
+              id="categoria"
             >
               {categorias.map((e: ICategoria) => (
                 <option key={e.id} value={e.id}>

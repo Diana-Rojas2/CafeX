@@ -3,8 +3,7 @@ export interface IProducto{
     nombre : string;
     descripcion : string;
     precio : number;
-    categoria : string;
-    idCategoria : number;
+    categoria : number;
     interacciones : {
         visitas : number;
         likes : number;
@@ -13,5 +12,4 @@ export interface IProducto{
     urlsImagenes : [string];
     stock : number;
     tienda : string;
-    idtienda : string;
 }

@@ -24,13 +24,16 @@ const ModificarTiendaPage = ({ params }: Props) => {
   const router = useRouter();
 
   useEffect(() => {
-
-        axios.get(`http://localhost:8080/Tienda/Id/${params.id}`).then((prod) => {
-          const data = prod.data; 
-          setValue("id", data.id);
-          setValue("nombre", data.nombre);
-          setValue("correoElectronico", data.correoElectronico);
-          setValue("telefono", data.telefono);
+    axios.get(`http://localhost:8080/Tienda/Id/${params.id}`).then((prod) => {
+      const tienda = prod.data.find((t: { id: number }) => t.id === params.id);
+      if (tienda) {
+        setValue("id", tienda.id);
+        setValue("nombre", tienda.nombre);
+        setValue("correoElectronico", tienda.correoElectronico);
+        setValue("telefono", tienda.telefono);
+      } else {
+        console.error("No se encontró la tienda con el ID proporcionado.");
+      }
     });
   }, [params.id, setValue]);
 
@@ -43,7 +46,6 @@ const ModificarTiendaPage = ({ params }: Props) => {
       console.error("Error al actualizar la tienda:", error);
     }
   });
-
 
   return (
     <form onSubmit={onSubmit}>
