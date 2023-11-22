@@ -1,28 +1,23 @@
+import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
 import React from "react";
-import { IUsuario } from "../models/IUsuario";
 
-async function getUsuarios(){
-  const datos = await fetch('http://localhost:8080/Usuario',
-  {
-    cache: "no-cache" /* cuando modificamos decargue la info actualizada */
-  });
-  const json = await datos.json();
-  return json;
-}
+async function getVendedores(): Promise<IUsuario[]> {
+    const datos = await fetch('http://localhost:8080/Usuario',
+    {
+      cache: "no-cache"
+    });
+    const json = await datos.json();
+    // Filtrar usuarios por el rol "vendedor"
+    const usuariosVendedores = json.filter((usuario: IUsuario) => usuario.idRol === 3);
+    return usuariosVendedores;
+  }
 
-
-const UsuariosPage = async () => {
-  const usuarios : IUsuario[] = await getUsuarios();
+const VendedoresPage = async () => {
+  const usuarios : IUsuario[] = await getVendedores();
   return (
     <div className="container items-center justify-center p-10">
-      <h1 className="text-3xl text-center dark:text-white">Usuarios Registrados</h1>
-      <Link
-        className="hover:shadow-form rounded-md bg-gray-600 dark:bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
-        href={"/Usuarios/Agregar"}
-      >
-        Agregar
-      </Link>
+<h1 className="text-3xl text-center dark:text-white">Solicitudes de Vendedores</h1>
       <div className="mt-4 overflow-x-auto">
         <table className="min-w-full border-collapse">
           <thead className="block md:table-header-group">
@@ -74,15 +69,15 @@ const UsuariosPage = async () => {
                 <td className="p-2 md:border md:border-grey-500 text-left md:table-cell">
                   <Link
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 border border-blue-500 rounded"
-                    href={`/Usuarios/Actualizar/${usuario.id}`}
+                    href={``}
                   >
-                    Actualizar
+                    Autorizar
                   </Link>
                   <Link
                     className="ms-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 border border-red-500 rounded"
-                    href={`/Usuarios/Eliminar/${usuario.id}`}
+                    href={``}
                   >
-                    Eliminar
+                    Rechazar
                   </Link>
                 </td>
               </tr>
@@ -94,4 +89,4 @@ const UsuariosPage = async () => {
   );
 };
 
-export default UsuariosPage;
+export default VendedoresPage;

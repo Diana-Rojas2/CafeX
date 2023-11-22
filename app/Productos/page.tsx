@@ -4,6 +4,7 @@ import Sidebar from "../components/sidebar";
 import Link from "next/link";
 import { IProducto } from "../models/IProducto";
 import { ITienda } from "../models/ITienda";
+import { ICategoria } from "../models/ICategoria";
 import "public/estilo.css";
 
 interface SubFilter {
@@ -21,101 +22,76 @@ interface Filter {
 
 const filtersData: Filter[] = [
   {
-    id: "tipo",
-    label: "Tipo de Café",
+    id: "categoria",
+    label: "Categoría",
+    selected: false,
+    subfilters: [],
+  },
+  {
+    id: "precio",
+    label: "Precio",
     selected: false,
     subfilters: [
-      { id: "grano", label: "En grano", selected: false },
-      { id: "molido", label: "Molido", selected: false },
-      { id: "granostostados", label: "En granos tostados", selected: false },
-      { id: "tostadoymolido", label: "Tostado y molido", selected: false },
+      { id: 'hasta_300', label: 'Hasta $300', selected: false },
+      { id: 'entre_300_y_800', label: '$300 a $800', selected: false },
+      { id: 'mayores_800', label: 'Más de $800', selected: false },
     ],
   },
   {
-    id: "peso",
-    label: "Peso de la unidad",
+    id: "tienda",
+    label: "Tienda",
     selected: false,
-    subfilters: [
-      { id: "menos340g", label: "340 g o menos", selected: false },
-      { id: "340a500g", label: "340 a 500 g", selected: false },
-      { id: "500a1kg", label: "500 a 1 kg", selected: false },
-      { id: "mas1kg", label: "1 kg o más", selected: false },
-    ],
-  },
-  {
-    id: "envase",
-    label: "Tipo de envase",
-    selected: false,
-    subfilters: [
-      { id: "bolsa", label: "Bolsa", selected: false },
-      { id: "lata", label: "Lata", selected: false },
-      { id: "frasco", label: "Frasco", selected: false },
-    ],
-  },
-  {
-    id: "tostado",
-    label: "Nivel de tostado",
-    selected: false,
-    subfilters: [
-      { id: "medio", label: "Medio", selected: false },
-      { id: "intenso", label: "Intenso", selected: false },
-      { id: "claro", label: "Claro", selected: false },
-    ],
+    subfilters: [],
   },
 ];
 
-/* const ProductosPage: React.FC = async  () => { */
+
 function ProductosPage() {
   const [productos, setProductos] = useState<IProducto[]>([]);
   const [filters, setFilters] = useState<Filter[]>(filtersData);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [tiendas, setTiendas] = useState<ITienda[]>([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const datos = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}Producto`,
-          {
-            cache: "no-cache",
-          }
-        );
-        const json = await datos.json();
-        setProductos(json);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
+  const applyFilters = () => {
+    const filteredProductos = productos.filter((producto) => {
+      const categoriaFilter = filters.find((filter) => filter.id === 'categoria');
+      const precioFilter = filters.find((filter) => filter.id === 'precio');
+      const tiendaFilter = filters.find((filter) => filter.id === 'tienda');
+
+      const categoriaSelected = categoriaFilter?.subfilters?.find((subfilter) => subfilter.selected);
+      const tiendaSelected = tiendaFilter?.subfilters?.find((subfilter) => subfilter.selected);
+
+      let precioRangeFilter;
+      if (precioFilter) {
+        precioRangeFilter = precioFilter.subfilters?.find((subfilter) => subfilter.selected);
       }
-    }
 
-    fetchData();
-  }, []);
+      const categoriaMatch = !categoriaSelected || producto.categoria === Number(categoriaSelected.id);
+      const tiendaMatch = !tiendaSelected || producto.tienda === tiendaSelected.id;
 
-  useEffect(() => {
-    async function fetchTiendas() {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}Tiendas`,
-          {
-            cache: "no-cache",
-          }
-        );
-        const data = await response.json();
-        setTiendas(data);
-      } catch (error) {
-        console.error("Error fetching tiendas: ", error);
+      let precioMatch = true;
+      if (precioRangeFilter) {
+        const precio = producto.precio; 
+        switch (precioRangeFilter.id) {
+          case 'hasta_300':
+            precioMatch = precio <= 300;
+            break;
+          case 'entre_300_y_800':
+            precioMatch = precio > 300 && precio <= 800;
+            break;
+          case 'mayores_800':
+            precioMatch = precio > 800;
+            break;
+          default:
+            precioMatch = true;
+        }
       }
-    }
 
-    fetchTiendas();
-  }, []);
+      return categoriaMatch && tiendaMatch && precioMatch;
+    });
 
-  const tiendasDictionary = tiendas.reduce<{ [key: string]: string }>(
-    (dict, tienda) => {
-      dict[tienda.id] = tienda.nombre;
-      return dict;
-    },
-    {}
-  );
+    setProductos(filteredProductos);
+  };
 
   const handleFilterChange = (filterId: string) => {
     setFilters((prevFilters) =>
@@ -145,28 +121,114 @@ function ProductosPage() {
     });
   };
 
-  const filteredProductos = productos.filter((producto) => {
-    return (
-      selectedFilters.length === 0 ||
-      selectedFilters.every((filterId) => {
-        switch (filterId) {
-          case "grano":
-            return producto.nombre === "grano";
-          case "molido":
-            return producto.nombre === "molido";
-          case "bolsa":
-            return producto.descripcion === "bolsa";
-          case "lata":
-            return producto.descripcion === "lata";
-          case "frasco":
-            return producto.descripcion === "frasco";
-          default:
-            return true;
-        }
-      })
-    );
-  });
+  useEffect(() => {
+    applyFilters();
+  }, [selectedFilters]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [filters]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const datos = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}Producto`,
+          {
+            cache: "no-cache",
+          }
+        );
+        const json = await datos.json();
+        setProductos(json);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const datos = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
+          {
+            cache: "no-cache",
+          }
+        );
+        const json = await datos.json();
+        setTiendas(json);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      //Obtener categorías desde la API
+      try {
+        const categoriasDatos = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Categoria`, {
+          cache: "no-cache",
+        });
+        const categorias = await categoriasDatos.json();
+
+        setFilters((prevFilters) =>
+          prevFilters.map((filter) => {
+            if (filter.id === "categoria") {
+              return {
+                ...filter,
+                subfilters: categorias.map((categoria:ICategoria) => ({
+                  id: categoria.id.toString(),
+                  label: categoria.categoria,
+                  selected: false,
+                })),
+              };
+            }
+            return filter;
+          })
+        );
+      } catch (error) {
+        console.error("Error fetching category data: ", error);
+      }
+    }
+
+    async function fetchStores() {
+      //Obtener tiendas desde la API
+      try {
+        const tiendasDatos = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`, {
+          cache: "no-cache",
+        });
+        const tiendas = await tiendasDatos.json();
+
+        setFilters((prevFilters) =>
+          prevFilters.map((filter) => {
+            if (filter.id === "tienda") {
+              return {
+                ...filter,
+                subfilters: tiendas.map((tienda: ITienda) => ({
+                  id: tienda.id.toString(),
+                  label: tienda.nombre,
+                  selected: false,
+                })),
+              };
+            }
+            return filter;
+          })
+        );
+      } catch (error) {
+        console.error("Error fetching store data: ", error);
+      }
+    }
+
+    fetchCategories();
+    fetchStores();
+  }, []);
+
+  
   return (
     <div className="flex static">
       <Sidebar filters={filters} handleFilterChange={handleFilterChange} />
@@ -182,7 +244,7 @@ function ProductosPage() {
           Productos
         </h1>
         <div className="static grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 ">
-          {filteredProductos.map((producto) => (
+        {productos.map((producto) => (
             <div key={producto.id} className="p-2">
               <div>
                 <div>
@@ -200,7 +262,7 @@ function ProductosPage() {
                         <img
                           src={producto.urlsImagenes[0]}
                           alt="imagen cafe"
-                          className="rounded-xl"
+                          className="rounded-xl "
                         />
                       </Link>
                     </div>
@@ -265,22 +327,29 @@ function ProductosPage() {
                             {" "}
                             (MXN)
                           </span>
-                        </p>
-
-                        {/* <p className=" text-gray-500 text-base dark:text-white">
-                          Tienda: {tiendasDictionary[producto.tienda]}
-                        </p> */}
+                        </p >
+                        {tiendas.map(
+                          (tienda) =>
+                            producto.tienda === tienda.id && (
+                              <p
+                                key={tienda.id}
+                                className="text-gray-500 text-base dark:text-white"
+                              >
+                                Tienda: {tienda.nombre}
+                              </p>
+                            )
+                        )}
                       </Link>
                       <div className="flex flex-wrap items-center justify-center mt-2">
                         <Link
-                          className="hover:shadow-form rounded-md bg-green-700 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+                          className="hover:shadow-form rounded-md bg-green-700 py-2 px-4 text-center text-base font-semibold text-white outline-none"
                           href={`Productos/Modificar/${producto.id}`}
                         >
                           Modificar
                         </Link>
                         <div className="ml-2"></div>
                         <Link
-                          className="hover:shadow-form rounded-md bg-red-700 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+                          className="hover:shadow-form rounded-md bg-red-700 py-2 px-4 text-center text-base font-semibold text-white outline-none"
                           href={`Productos/Eliminar/${producto.id}`}
                         >
                           Eliminar

@@ -10,44 +10,57 @@ import Link from "next/link";
 
 const coordenadasTec = [19.882814, -97.3930258] as LatLngExpression;
 async function getLocalidades() {
-    const localidades = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Localidad`);
-    const respuesta = await localidades.json();
-    return respuesta;
-  }
-  
-  async function getUsuarios() {
-    const usuarios = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Usuario`);
-    const respuesta = await usuarios.json();
-    return respuesta;
-  }
+  const localidades = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}Localidad`
+  );
+  const respuesta = await localidades.json();
+  return respuesta;
+}
 
-  const AgregarTiendaPage = () => {
-    const [localidades, setLocalidades] = useState<ILocalidad[]>([]);
-    const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-  
-    useEffect(() => {
-      async function fetchData() {
-        try {
-          const localidadesData = await getLocalidades();
-          const usuariosData = await getUsuarios();
-          setLocalidades(localidadesData);
-          setUsuarios(usuariosData);
-          setIsLoading(false);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          setIsLoading(false);
-        }
+async function getVendedores(): Promise<IUsuario[]> {
+  const datos = await fetch("http://localhost:8080/Usuario", {
+    cache: "no-cache",
+  });
+  const json = await datos.json();
+  // Filtrar usuarios por el rol "vendedor"
+  const usuariosVendedores = json.filter(
+    (usuario: IUsuario) => usuario.idRol === 3
+  );
+  return usuariosVendedores;
+}
+
+const AgregarTiendaPage = () => {
+  const [localidades, setLocalidades] = useState<ILocalidad[]>([]);
+  const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedLocalidad, setSelectedLocalidad] = useState<ILocalidad | null>(
+    null
+  );
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const localidadesData = await getLocalidades();
+        const usuariosData = await getVendedores();
+        setLocalidades(localidadesData);
+        setUsuarios(usuariosData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsLoading(false);
       }
-  
-      fetchData();
-    }, []);
-  
-    async function onSubmit(event: FormEvent<HTMLFormElement>) {
-      event.preventDefault();
-  
-      const formData = new FormData(event.currentTarget);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`, {
+    }
+
+    fetchData();
+  }, []);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,23 +71,31 @@ async function getLocalidades() {
           telefono: formData.get("telefono"),
           ubicacion: {
             tipo: formData.get("tipo"),
-            coordenadas: [
-                formData.get("latitud"),
-                formData.get("longitud")
-            ],
+            coordenadas: [formData.get("latitud"), formData.get("longitud")],
           },
           idLocalidad: formData.get("idLocalidad"),
           idUsuario: formData.get("idUsuario"),
         }),
-      });
-      const data = await response.json();
-      alert(data.mensaje);
-    }
-  
-    if (isLoading) {
-      return <div>Cargando...</div>;
-    }
-  
+      }
+    );
+    const data = await response.json();
+    alert(data.mensaje);
+  }
+
+  if (isLoading) {
+    return <div>Cargando...</div>;
+  }
+
+  const handleLocalidadChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedLocalidadId = event.target.value;
+    const selected = localidades.find(
+      (localidad) => localidad.id.toString() === selectedLocalidadId
+    );
+    setSelectedLocalidad(selected || null);
+  };
+
   return (
     <form onSubmit={onSubmit}>
       <div className="min-h-screen p-6 bg-gray-100 flex items-center justify-center">
@@ -90,6 +111,7 @@ async function getLocalidades() {
               <input
                 type="text"
                 name="nombre"
+                id="nombre"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               />
             </div>
@@ -99,6 +121,7 @@ async function getLocalidades() {
               <input
                 type="email"
                 name="correoElectronico"
+                id="correoElectronico"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               />
             </div>
@@ -108,34 +131,37 @@ async function getLocalidades() {
               <input
                 type="tel"
                 name="telefono"
+                id="telefono"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               />
             </div>
-                <input
-                  type="hidden"
-                  name="tipo"
-                  className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
-                  value={"Point"}
-                />
-
-              <div>
-                <label htmlFor="">Usuario</label>
-                <select
-                  name="idUsuario"
-                  className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
-                >
-                  {usuarios.map((e: IUsuario) => (
-                    <option key={e.id} value={e.id}>
-                      {e.usuario}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <input
+              type="hidden"
+              name="tipo"
+              className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
+              value={"Point"}
+            />
 
             <div>
-                <label htmlFor="">Localidad</label>
+              <label htmlFor="idUsuario">Usuario</label>
+              <select
+                name="idUsuario"
+                id="idUsuario"
+                className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
+              >
+                {usuarios.map((e: IUsuario) => (
+                  <option key={e.id} value={e.id}>
+                    {e.usuario}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* <div>
+                <label htmlFor="idLocalidad">Localidad</label>
                 <select
                   name="idLocalidad"
+                  id="idLocalidad"
                   className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
                 >
                   {localidades.map((e: ILocalidad) => (
@@ -144,22 +170,50 @@ async function getLocalidades() {
                     </option>
                   ))}
                 </select>
+              </div> */}
+            <div>
+              <label htmlFor="idLocalidad">Localidad</label>
+              <select
+                name="idLocalidad"
+                id="idLocalidad"
+                className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
+                onChange={handleLocalidadChange}
+              >
+                {localidades.map((e: ILocalidad) => (
+                  <option key={e.id} value={e.id}>
+                    {e.localidad}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+            {selectedLocalidad && (
+              <div>
+                <p>Ciudad: {selectedLocalidad.ciudad}</p>
+                <p>Municipio: {selectedLocalidad.idMunicipio}</p>
+                <p>Asentamiento: {selectedLocalidad.asentamiento}</p>
+                <p>Código Postal: {selectedLocalidad.cp}</p>
               </div>
-
+            )}
+</div>
             <div>
               <label htmlFor="latitud">Latitud</label>
               <input
                 type="number"
                 name="latitud"
+                id="latitud"
+                step="any"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               />
             </div>
 
-            <div >
+            <div>
               <label htmlFor="longitud">Longitud</label>
               <input
                 type="number"
                 name="longitud"
+                id="longitud"
+                step="any"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               />
             </div>
@@ -193,23 +247,23 @@ async function getLocalidades() {
             </div>
           </div>
           <div className="flex justify-center mt-4">
-          <button
+            <button
               className="m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
               type="submit"
             >
               Guardar
             </button>
             <Link
-                className="m-2 hover:shadow-form rounded-md bg-gray-600 py-3 px-8 text-center text-base font-semibold text-white outline-none"
-                href={"/Tiendas"}
-              >
-                Regresar
-              </Link>
+              className="m-2 hover:shadow-form rounded-md bg-gray-600 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+              href={"/Tiendas"}
+            >
+              Regresar
+            </Link>
           </div>
         </div>
       </div>
     </form>
   );
-}
+};
 
 export default AgregarTiendaPage;

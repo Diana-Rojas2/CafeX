@@ -170,7 +170,11 @@ const Nav: React.FC = () => {
             placeholder="Search"
           />
         </div>
-      <br />
+        <div className="flex justify-end">
+        <Link className="text-gray-900 dark:text-white" href={"/Vendedores"}>
+          ¿Quieres ser vendedor?
+        </Link>
+      </div>
       <Cart cartOpen={cartOpen} toggleCart={toggleCart} />
     </div>
   );

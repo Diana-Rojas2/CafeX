@@ -2,11 +2,13 @@
 import { IRol } from "@/app/models/IRol";
 import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
-import React, { FormEvent } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 async function getRoles() {
-  const roles = await fetch("http://localhost:8080/Rol");
+  const roles = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}Rol`
+  );
   const respuesta = await roles.json();
   return respuesta;
 }
@@ -54,6 +56,7 @@ const AgregarUPage = async () => {
               type="text"
               name="nombre"
               placeholder="Nombre"
+              id="nombre"
               className="w-full appearance-none rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
             />
           </div>
@@ -70,6 +73,7 @@ const AgregarUPage = async () => {
                   type="text"
                   name="apellidoPaterno"
                   placeholder="Apellido Paterno"
+                  id="apellidoPaterno"
                   className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
                 />
               </div>
@@ -86,6 +90,7 @@ const AgregarUPage = async () => {
                   type="text"
                   name="apellidoMaterno"
                   placeholder="Apellido Materno"
+                  id="apellidoMaterno"
                   className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
                 />
               </div>
@@ -102,6 +107,7 @@ const AgregarUPage = async () => {
               type="email"
               name="correoElectronico"
               placeholder="Correo Electronico"
+              id="correoElectronico"
               className="w-full appearance-none rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
             />
           </div>
@@ -116,6 +122,7 @@ const AgregarUPage = async () => {
               type="text"
               name="telefono"
               placeholder="Telefono"
+              id="telefono"
               className="w-full appearance-none rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
             />
           </div>
@@ -131,6 +138,7 @@ const AgregarUPage = async () => {
                 <input
                   type="text"
                   name="usuario"
+                  id="usuario"
                   placeholder="Usuario"
                   className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
                 />
@@ -147,26 +155,28 @@ const AgregarUPage = async () => {
                 <input
                   type="password"
                   name="pwd"
+                  id="pwd"
                   placeholder="Contraseña"
                   className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
                 />
               </div>
             </div>
           </div>
-          <input type="hidden" name="idRol" value={2} />
           <div className="mb-4">
             <label
-              htmlFor="nombre"
+              htmlFor="idRol"
               className="mb-3 block text-base font-medium text-[#07074D] dark:text-white"
             >
               Rol
             </label>
+
             <select
-              className="form-select w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
               name="idRol"
+              id="idRol"
+              className="form-select w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
             >
               {roles.map((e: IRol) => (
-                <option key={e.id} value={e.id}>
+                <option key={e.id_rol} value={e.id_rol}>
                   {e.rol}
                 </option>
               ))}

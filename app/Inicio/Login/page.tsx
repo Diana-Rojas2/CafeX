@@ -32,8 +32,8 @@ export default function Login() {
 
   return (
     <div className="font-mono ">
-      <div className="container mx-auto">
-        <div className="flex justify-center px-6 my-12">
+      <div className="container mx-auto dark:border-gray-600">
+        <div className="flex justify-center px-6 my-12 dark:border-gray-600">
           <div className="w-full xl:w-3/4 lg:w-11/12 flex border border-solid border-gray-400 dark:border-gray-600 rounded-lg">
             <div className="w-full dark:bg-gray-700 hidden lg:block lg:w-1/2 bg-cover rounded-l-lg">
               <img
@@ -44,7 +44,7 @@ export default function Login() {
             </div>
 
             <div className="w-full lg:w-1/2 dark:bg-gray-700 bg-white p-5 rounded-lg lg:rounded-l-none">
-              <form className="px-8 pt-1 pb-8 mb-2 dark:bg-gray-700 bg-white rounded" onSubmit={handleLogin}>
+              <form className="px-8 pt-1 pb-8 mb-2 dark:bg-gray-700 bg-white dark:border-gray-600 rounded" onSubmit={handleLogin}>
                 <center>
                   <Image
                     src="/LogoCafeXN.png"
@@ -93,7 +93,7 @@ export default function Login() {
 
                 <div className="mb-3 text-center">
                   <button
-                    className="w-full px-4 py-2 font-bold dark:text-black text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    className="w-full px-4 py-2 font-bold  text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                     type="submit"
                   >
                     Iniciar Sesión
@@ -108,14 +108,7 @@ export default function Login() {
                     Crear Cuenta!
                   </Link>
                 </div>
-                <div className="text-center">
-                  <a
-                    className="inline-block text-sm text-blue-500 align-baseline hover:text-blue-800 dark:text-white"
-                    href="#"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </a>
-                </div>
+
               </form>
             </div>
           </div>

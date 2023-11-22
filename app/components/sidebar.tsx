@@ -48,12 +48,12 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, handleFilterChange }) => {
           </li>
         ))}
       </ul>
-      <a className="flex items-center justify-center mt-4 px-3 py-2 bg-[#2F4858] text-white text-sm uppercase font-medium rounded hover:bg-blue-900 focus:outline-none focus:bg-blue-900">
+      {/* <a className="flex items-center justify-center mt-4 px-3 py-2 bg-[#2F4858] text-white text-sm uppercase font-medium rounded hover:bg-blue-900 focus:outline-none focus:bg-blue-900">
         <span>Aplicar filtros</span>
         <svg className="h-5 w-5 mx-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
           <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
         </svg>
-      </a>
+      </a> */}
     </div>
   );
 };

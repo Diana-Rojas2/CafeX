@@ -8,7 +8,6 @@ import Image from "next/image";
 
 
 const CrearCuentaPage = () => {
-  const [esVendedor, setEsVendedor] = useState(false);
   const router = useRouter();
 
 
@@ -16,7 +15,7 @@ const CrearCuentaPage = () => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const idRol = esVendedor ? 4 : 2;
+    const idRol = 2;
     const response = await fetch("http://localhost:8080/Usuario", {
       method: "POST",
       headers: {
@@ -37,17 +36,13 @@ const CrearCuentaPage = () => {
     alert(data.mensaje);
   }
 
-  const handleCheckboxChange = () => {
-    setEsVendedor(!esVendedor);
-  };
-
   return (
     <div className="font-mono">
       <div className="container mx-auto">
         <div className="flex justify-center px-4 my-12">
-          <div className="w-full xl:w-3/4 lg:w-11/12 md:w-4/5 flex border border-solid border-gray-400 rounded-lg">
-            <div className="w-full lg:w-1/2 bg-white p-5 rounded-lg lg:rounded-r-none">
-              <form className=" px-8 pb-4 mb-2 bg-white rounded" onSubmit={onSubmit}>
+          <div className="w-full dark:border-gray-600 xl:w-3/4 lg:w-11/12 md:w-4/5 flex border border-solid border-gray-400 rounded-lg">
+            <div className="w-full lg:w-1/2 bg-white dark:bg-gray-700 dark:border-gray-700 p-5 rounded-lg lg:rounded-r-none">
+              <form className=" px-8 pb-4 mb-2 dark:bg-gray-700 bg-white rounded" onSubmit={onSubmit}>
                 <center>
                   <Image
                     src="/LogoCafeXN.png"
@@ -57,10 +52,10 @@ const CrearCuentaPage = () => {
                     height={160}
                   />
                 </center>
-                <h4 className="text-2x1 text-center">Crear Cuenta</h4>
-                <div className="mb-2">
+                <h4 className="text-2x1 text-center dark:text-white">Crear Cuenta</h4>
+                <div className="mb-4">
                   <label
-                    className="block mb-1 text-sm font-bold text-gray-700"
+                    className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                     htmlFor="nombre"
                   >
                     Nombre
@@ -73,10 +68,10 @@ const CrearCuentaPage = () => {
                     required
                   />
                 </div>
-                <div className="mb-2 flex">
+                <div className="mb-4 flex">
                   <div className="w-1/2 pr-2">
                     <label
-                      className="block mb-1 text-sm font-bold text-gray-700"
+                      className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                       htmlFor="apellidoPaterno"
                     >
                       Apellido Paterno
@@ -91,7 +86,7 @@ const CrearCuentaPage = () => {
                   </div>
                   <div className="w-1/2 pl-2">
                     <label
-                      className="block mb-1 text-sm font-bold text-gray-700"
+                      className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                       htmlFor="apellidoMaterno"
                     >
                       Apellido Materno
@@ -105,10 +100,10 @@ const CrearCuentaPage = () => {
                     />
                   </div>
                 </div>
-                <div className="mb-2 flex">
+                <div className="mb-4 flex">
                   <div className="w-1/2 pr-2">
                     <label
-                      className="block mb-1 text-sm font-bold text-gray-700"
+                      className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                       htmlFor="correoElectronico"
                     >
                       Correo Electrónico
@@ -122,7 +117,7 @@ const CrearCuentaPage = () => {
                   </div>
                   <div className="w-1/2 pl-2">
                     <label
-                      className="block mb-1 text-sm font-bold text-gray-700"
+                      className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                       htmlFor="telefono"
                     >
                       Teléfono
@@ -135,10 +130,10 @@ const CrearCuentaPage = () => {
                     />
                   </div>
                 </div>
-                <div className=" flex">
+                <div className=" flex mb-4">
                   <div className="w-1/2 pr-2">
                     <label
-                      className="block mb-1 text-sm font-bold text-gray-700"
+                      className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                       htmlFor="usuario"
                     >
                       Usuario
@@ -153,7 +148,7 @@ const CrearCuentaPage = () => {
                   </div>
                   <div className="w-1/2 pl-2">
                     <label
-                      className="block mb-1 text-sm font-bold text-gray-700"
+                      className="block mb-1 text-sm font-bold text-gray-700 dark:text-white"
                       htmlFor="pwd"
                     >
                       Contraseña
@@ -168,19 +163,6 @@ const CrearCuentaPage = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-row m-2 mx-14 items-center">
-                  <input
-                    className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5"
-                    type="checkbox"
-                    onChange={handleCheckboxChange} 
-                  />
-                  <label
-                    htmlFor=""
-                    className="block align-middle text-sm font-bold text-gray-700 ml-2"
-                  >
-                    ¿Quieres ser Vendedor?
-                  </label>
-                </div>
                 <div className="mb-3 text-center">
                   <button
                     className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700 ,,focus:outline-none focus:shadow-outline"
@@ -192,7 +174,7 @@ const CrearCuentaPage = () => {
                 <hr className="mb-2 border-t" />
                 <div className="text-center">
                   <Link
-                    className="inline-block text-sm text-blue-500 align-baseline hover:text-blue-800"
+                    className="inline-block text-sm text-blue-500 align-baseline dark:text-white hover:text-blue-800"
                     href="Login"
                   >
                     ¿Ya tienes una cuenta?
@@ -200,7 +182,7 @@ const CrearCuentaPage = () => {
                 </div>
               </form>
             </div>
-            <div className="w-full h-full bg-gray-700-400 hidden lg:block lg:w-3/5 bg-cover rounded-l-lg">
+            <div className="w-full h-full bg-gray-700 hidden lg:block lg:w-3/5 bg-cover rounded-l-lg">
               <img
                 className="rounded-r-lg"
                 src="https://i.pinimg.com/736x/3d/92/23/3d92234b076fbe89f50c48d0b5f92d3d.jpg"
