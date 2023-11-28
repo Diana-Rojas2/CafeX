@@ -4,17 +4,26 @@ import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
-async function getRoles() {
-  const roles = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}Rol`
-  );
-  const respuesta = await roles.json();
-  return respuesta;
-}
+const AgregarUPage = () => {
+  const [roles, setRoles] = useState<IRol[]>([]);
+  const router = useRouter();
 
-const AgregarUPage = async () => {
-  const roles: IRol[] = await getRoles();
+  useEffect(() => {
+    async function fetchRoles() {
+      try {
+        const rolesResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}Rol`
+        );
+        const rolesData = await rolesResponse.json();
+        setRoles(rolesData);
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+      }
+    }
+    fetchRoles();
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,8 +45,26 @@ const AgregarUPage = async () => {
         idRol: formData.get("idRol"),
       }),
     });
-    const data = await response.json();
-    alert(data.mensaje);
+    if (response.ok) {
+      router.push("/Usuarios");
+      router.refresh();
+    } else {
+      try {
+        const dataText = await response.text();
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: dataText,
+        });
+      } catch (error) {
+        console.error("Error parsing response as text:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Error al procesar la respuesta del servidor.",
+        });
+      }
+    }
   }
 
   return (
@@ -184,12 +211,13 @@ const AgregarUPage = async () => {
           </div>
           <div>
             <center>
-              <button
-                type="submit"
-                className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
+            <button type='submit' className='m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none'>Agregar</button>
+              <Link
+                className="m-2 hover:shadow-form rounded-md bg-gray-700 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+                href={"/Usuarios"}
               >
-                Agregar
-              </button>
+                Regresar
+              </Link>
             </center>
           </div>
         </form>

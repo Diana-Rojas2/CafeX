@@ -32,7 +32,7 @@ const Pedidospage = () => {
 
     return (
         <div>
-        <div className="bg-gray-100 font-sans h-screen">
+        <div className=" font-sans h-screen">
           <div className="p-8">
             <div className="max-w-md mx-auto">
               <div className="flex space-x-4 mb-4 p-2 bg-white rounded-lg shadow-md">

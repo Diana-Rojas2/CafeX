@@ -1,5 +1,4 @@
 import Footer from "../components/footer"
-import Nav from "../components/nav"
 import NavB from "../components/navb"
 
 const layout = ({

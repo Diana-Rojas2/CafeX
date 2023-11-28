@@ -9,6 +9,18 @@ import Image from "next/image";
 
 const CrearCuentaPage = () => {
   const router = useRouter();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+
+    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    darkModeQuery.addListener(darkModeHandler);
+
+    return () => darkModeQuery.removeListener(darkModeHandler);
+  }, []);
+
 
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -45,7 +57,7 @@ const CrearCuentaPage = () => {
               <form className=" px-8 pb-4 mb-2 dark:bg-gray-700 bg-white rounded" onSubmit={onSubmit}>
                 <center>
                   <Image
-                    src="/LogoCafeXN.png"
+                    src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
                     priority
                     alt="logotipo"
                     width={160}

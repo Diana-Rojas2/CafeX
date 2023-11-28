@@ -10,6 +10,18 @@ const iconColor = "text-black dark:text-white";
 const NavB = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+
+    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    darkModeQuery.addListener(darkModeHandler);
+
+    return () => darkModeQuery.removeListener(darkModeHandler);
+  }, []);
+
 
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
@@ -40,7 +52,7 @@ const NavB = () => {
             className=" flex items-center space-x-3 rtl:space-x-reverse"
           >
             <Image
-              src="/LogoCafeXB.png"
+              src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
               alt="logotipo"
               priority={true}
               width={60}

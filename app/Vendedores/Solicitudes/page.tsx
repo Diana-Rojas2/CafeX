@@ -38,9 +38,6 @@ const VendedoresPage = async () => {
                 Telefono
               </th>
               <th className="bg-gray-600 p-2 text-white font-bold md:border md:border-grey-500 text-left block md:table-cell">
-                Usuario
-              </th>
-              <th className="bg-gray-600 p-2 text-white font-bold md:border md:border-grey-500 text-left block md:table-cell">
                 Acciones
               </th>
             </tr>
@@ -64,20 +61,11 @@ const VendedoresPage = async () => {
                   {usuario.telefono}
                 </td>
                 <td className="p-2 md:border md:border-grey-500 text-left md:table-cell">
-                  {usuario.usuario}
-                </td>
-                <td className="p-2 md:border md:border-grey-500 text-left md:table-cell">
                   <Link
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 border border-blue-500 rounded"
-                    href={``}
+                    href={`/Vendedores/Consultar`}
                   >
-                    Autorizar
-                  </Link>
-                  <Link
-                    className="ms-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 border border-red-500 rounded"
-                    href={``}
-                  >
-                    Rechazar
+                    Ver mas...
                   </Link>
                 </td>
               </tr>

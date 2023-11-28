@@ -1,14 +1,23 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMapEvents,
+} from "react-leaflet";
 import MarkerIcon from "leaflet/dist/images/marker-icon.png";
 import "leaflet/dist/leaflet.css";
 import { ILocalidad } from "@/app/models/ILocalidad";
 import { Icon, LatLngExpression } from "leaflet";
 import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
 const coordenadasTec = [19.882814, -97.3930258] as LatLngExpression;
+
 async function getLocalidades() {
   const localidades = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}Localidad`
@@ -22,7 +31,7 @@ async function getVendedores(): Promise<IUsuario[]> {
     cache: "no-cache",
   });
   const json = await datos.json();
-  // Filtrar usuarios por el rol "vendedor"
+
   const usuariosVendedores = json.filter(
     (usuario: IUsuario) => usuario.idRol === 3
   );
@@ -36,6 +45,23 @@ const AgregarTiendaPage = () => {
   const [selectedLocalidad, setSelectedLocalidad] = useState<ILocalidad | null>(
     null
   );
+  const router = useRouter();
+
+  const [markerPosition, setMarkerPosition] =
+    useState<LatLngExpression>(coordenadasTec);
+
+  const handleMapClick = (event: any) => {
+    setMarkerPosition([event.latlng.lat, event.latlng.lng]);
+  };
+
+  const MapClickHandler = () => {
+    const map = useMapEvents({
+      click: (event) => {
+        handleMapClick(event);
+      },
+    });
+    return null;
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -50,7 +76,6 @@ const AgregarTiendaPage = () => {
         setIsLoading(false);
       }
     }
-
     fetchData();
   }, []);
 
@@ -58,32 +83,53 @@ const AgregarTiendaPage = () => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre: formData.get("nombre"),
-          correoElectronico: formData.get("correoElectronico"),
-          telefono: formData.get("telefono"),
-          ubicacion: {
-            tipo: formData.get("tipo"),
-            coordenadas: [formData.get("latitud"), formData.get("longitud")],
+    if (Array.isArray(markerPosition) && markerPosition.length === 2) {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          idLocalidad: formData.get("idLocalidad"),
-          idUsuario: formData.get("idUsuario"),
-        }),
+          body: JSON.stringify({
+            nombre: formData.get("nombre"),
+            correoElectronico: formData.get("correoElectronico"),
+            telefono: formData.get("telefono"),
+            ubicacion: {
+              tipo: formData.get("tipo"),
+              coordenadas: [markerPosition[0], markerPosition[1]], // Acceder a las coordenadas del marcador
+            },
+            idLocalidad: formData.get("idLocalidad"),
+            idUsuario: formData.get("idUsuario"),
+          }),
+        });
+      if (response.ok) {
+        router.push("/Tiendas");
+        router.refresh();
+      } else {
+        try {
+          const dataText = await response.text();
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: dataText,
+          });
+        } catch (error) {
+          console.error("Error:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Error al procesar la respuesta del servidor.",
+          });
+        }
       }
-    );
-    const data = await response.json();
-    alert(data.mensaje);
-  }
-
-  if (isLoading) {
-    return <div>Cargando...</div>;
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Las coordenadas del marcador no están definidas correctamente.",
+      });
+    }
   }
 
   const handleLocalidadChange = (
@@ -98,7 +144,7 @@ const AgregarTiendaPage = () => {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="min-h-screen p-6 bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen p-6  flex items-center justify-center">
         <div className="bg-white rounded shadow-lg p-4 px-4 md:p-8 mb-6">
           <h2 className="font-semibold text-xl text-dark-600 text-center">
             Registrar Tienda
@@ -187,16 +233,16 @@ const AgregarTiendaPage = () => {
               </select>
             </div>
             <div>
-            {selectedLocalidad && (
-              <div>
-                <p>Ciudad: {selectedLocalidad.ciudad}</p>
-                <p>Municipio: {selectedLocalidad.idMunicipio}</p>
-                <p>Asentamiento: {selectedLocalidad.asentamiento}</p>
-                <p>Código Postal: {selectedLocalidad.cp}</p>
-              </div>
-            )}
-</div>
-            <div>
+              {selectedLocalidad && (
+                <div>
+                  <p>Ciudad: {selectedLocalidad.ciudad}</p>
+                  <p>Municipio: {selectedLocalidad.idMunicipio}</p>
+                  <p>Asentamiento: {selectedLocalidad.asentamiento}</p>
+                  <p>Código Postal: {selectedLocalidad.cp}</p>
+                </div>
+              )}
+            </div>
+            {/*             <div>
               <label htmlFor="latitud">Latitud</label>
               <input
                 type="number"
@@ -216,7 +262,7 @@ const AgregarTiendaPage = () => {
                 step="any"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               />
-            </div>
+            </div> */}
 
             <div className="md:col-span-3 mt-4">
               <MapContainer
@@ -229,8 +275,10 @@ const AgregarTiendaPage = () => {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+
+                <MapClickHandler />
                 <Marker
-                  position={coordenadasTec}
+                  position={markerPosition}
                   icon={
                     new Icon({
                       iconUrl: MarkerIcon.src,

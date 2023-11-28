@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
 
 export interface Props {
   params: { id: number };
@@ -39,13 +40,23 @@ const ModificarProductosPage = ({ params }: Props) => {
   }, [params.id, setValue]);
 
   const onSubmit = handleSubmit(async (formData) => {
+    try{
     await axios.put(`http://localhost:8080/Producto/${params.id}`, formData);
     router.push("/Productos");
     router.refresh();
+    } catch (error) {
+      console.error("Error al actualizar el procucto:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Error al actualizar el producto",
+      });
+    }
   });
+
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
+      <div className="flex items-center justify-center min-h-screen  dark:bg-gray-800">
         <div className="bg-white shadow-md rounded w-full md:w-96 px-8 pt-6 pb-8 mb-4 mt-4  ">
           <div className="flex justify-center mb-2">
             <img src="/LogoCafeXN.png" alt="Logo" className="h-16 w-16 mb-2" />
@@ -119,12 +130,18 @@ const ModificarProductosPage = ({ params }: Props) => {
           </div>
 
           <div className="flex justify-center mt-2">
-            <button
-              className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
+          <button
+              className="m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
               type="submit"
             >
               Guardar
             </button>
+            <Link
+              className="m-2 hover:shadow-form rounded-md bg-gray-600 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+              href={"/Productos"}
+            >
+              Regresar
+            </Link>
           </div>
         </div>
       </div>

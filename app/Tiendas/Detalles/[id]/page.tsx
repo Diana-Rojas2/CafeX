@@ -27,7 +27,7 @@ const TiendasPage = ({ params }: Props) => {
     <>
       {tienda && (
         <div key={tienda.id} className="md:flex items-center -mx-10">
-          <div className="mt-9 w-full md:w-1/2 px-10 relative rounded-xl shadow-lg mx-auto border dark:bg-gray-700 dark:text-white border-white sm:text-sm">
+          <div className="mt-9 w-full md:w-1/2 px-10 relative rounded-xl shadow-lg mx-auto bg-white border dark:bg-gray-700 dark:text-white border-white sm:text-sm">
             <div className="mb-5">
               <h1 className="font-bold text-2xl mb-2">{tienda.nombre}</h1>
               <span className="text-2xl leading-none align-baseline">
@@ -41,7 +41,7 @@ const TiendasPage = ({ params }: Props) => {
       )}
       {!tienda && <p>Cargando...</p>}
       <div className="flex flex-col items-center justify-center h-screen">
-        <h2 className="text-2xl font-semibold mb-4 mt-4 text-white">
+        <h2 className="text-2xl font-semibold mb-4 mt-4 dark:text-white">
           Sucursales
         </h2>
         <div className="w-full h-full">

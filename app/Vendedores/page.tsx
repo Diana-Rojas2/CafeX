@@ -1,9 +1,21 @@
-import React from 'react'
+'use client'
+import React, { useEffect, useState } from 'react'
 import Image from "next/image";
 import Link from 'next/link';
 
 
 const SolicitudPage = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+
+    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    darkModeQuery.addListener(darkModeHandler);
+
+    return () => darkModeQuery.removeListener(darkModeHandler);
+  }, []);
   return (
     <div className="font-mono ">
       <div className="container mx-auto dark:border-gray-600">
@@ -15,7 +27,7 @@ const SolicitudPage = () => {
                 </h4>
                 <center>
                   <Image
-                    src="/LogoCafeXN.png"
+                    src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
                     priority
                     alt="logotipo"
                     width={160}
@@ -35,9 +47,10 @@ const SolicitudPage = () => {
                   <input
                     className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5"
                     type="checkbox"
+                    name='terminos'
                   />
                   <label
-                    htmlFor=""
+                    htmlFor="terminos"
                     className="block align-middle text-sm font-bold text-gray-700 ml-2 dark:text-white"
                   >
                     Acepto los terminos y condiciones y autorizo el uso de mis datos

@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { IUsuario } from "@/app/models/IUsuario";
+import Swal from "sweetalert2";
 
 export interface Props {
   params: { id: number };
@@ -44,12 +45,17 @@ const ModificarTiendaPage = ({ params }: Props) => {
       router.refresh();
     } catch (error) {
       console.error("Error al actualizar la tienda:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Error al actualizar la tienda",
+      });
     }
   });
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="min-h-screen p-6 bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen p-6  flex items-center justify-center">
         <div className="bg-white rounded shadow-lg p-4 px-4 md:p-8 mb-6">
           <h2 className="font-semibold text-xl text-dark-600 text-center">
             Modificar Tienda

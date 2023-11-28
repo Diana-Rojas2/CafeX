@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,6 +8,17 @@ import router from "next/router";
 export default function Login() {
   const [usuario, setUsuario] = useState("");
   const [pwd, setPwd] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+
+    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    darkModeQuery.addListener(darkModeHandler);
+
+    return () => darkModeQuery.removeListener(darkModeHandler);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => { 
     e.preventDefault();
@@ -47,7 +58,7 @@ export default function Login() {
               <form className="px-8 pt-1 pb-8 mb-2 dark:bg-gray-700 bg-white dark:border-gray-600 rounded" onSubmit={handleLogin}>
                 <center>
                   <Image
-                    src="/LogoCafeXN.png"
+                    src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
                     priority
                     alt="logotipo"
                     width={160}

@@ -10,7 +10,7 @@ const AgregarVendedorPage = async () => {
     <div className="flex items-center justify-center p-12 dark:text-white">
       <div className="mx-auto w-full max-w-[550px]">
         <form /* onSubmit={onSubmit} */>
-          <h2 className="uppercase text-center">Solicitud de Vendedor </h2>
+          <h2 className="uppercase text-center text-xl">Mas informacion del Vendedor </h2>
           <div className="mb-4">
             <label
               htmlFor="rfc"
@@ -21,7 +21,7 @@ const AgregarVendedorPage = async () => {
             <input
               type="text"
               name="rfc"
-              placeholder="RFC"
+              placeholder="cargar infromacion RFC"
               id="rfc"
               className="w-full appearance-none rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
             />
@@ -82,12 +82,18 @@ const AgregarVendedorPage = async () => {
 
           <div>
             <center>
-              <button
-                type="submit"
-                className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
-              >
-                Agregar
-              </button>
+              <Link
+                    className="hover:shadow-form rounded-md mx-2  bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
+                    href={``}
+                  >
+                    Autorizar
+                  </Link>
+                  <Link
+                    className="hover:shadow-form rounded-md mx-2  bg-red-700 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+                    href={``}
+                  >
+                    Rechazar
+                  </Link>
             </center>
           </div>
         </form>

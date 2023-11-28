@@ -1,6 +1,20 @@
+'use client'
 import Image from "next/image";
+import React, { useState, useRef, useEffect } from "react";
+
 
 const Footer = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+
+    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    darkModeQuery.addListener(darkModeHandler);
+
+    return () => darkModeQuery.removeListener(darkModeHandler);
+  }, []);
   return (
     <footer className="bg-[#a2b38b] dark:bg-gray-900">
       <div className="container px-5 mx-auto">
@@ -8,7 +22,7 @@ const Footer = () => {
           <center>
             <Image
               priority={true}
-              src="/LogoCafeXB.png"
+              src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
               alt="logotipo"
               width={120}
               height={120}

@@ -1,9 +1,11 @@
 "use client";
 import { ICategoria } from "@/app/models/ICategoria";
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import React from "react";
 import { ITienda } from "@/app/models/ITienda";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 async function getCategorias() {
   const categorias = await fetch(
@@ -19,9 +21,27 @@ async function getTiendas() {
   return respuesta;
 }
 
-const AgregarProductosPage = async () => {
-  const categorias: ICategoria[] = await getCategorias();
-  const tiendas: ITienda[] = await getTiendas();
+const AgregarProductosPage = () => {
+  const [tiendas, setTiendas] = useState<ITienda[]>([]);
+  const [categorias, setCategorias] = useState<ICategoria[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const tiendasData = await getTiendas();
+        const categoriasData = await getCategorias();
+        setTiendas(tiendasData);
+        setCategorias(categoriasData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
   
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -50,13 +70,31 @@ const AgregarProductosPage = async () => {
         tienda: formData.get("tienda"),
       }),
     });
-    const data = await response.json();
-    alert(data.mensaje);
+    if (response.ok) {
+      router.push("/Productos");
+      router.refresh();
+    } else {
+      try {
+        const dataText = await response.text();
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: dataText,
+        });
+      } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Error al procesar la respuesta del servidor.",
+        });
+      }
+    }
   }
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
+      <div className="flex items-center justify-center min-h-screen dark:bg-gray-800">
         <div className="bg-white shadow-md rounded w-full md:w-96 px-8 pt-6 pb-8 mb-4 mt-4  ">
           <div className="flex justify-center mb-2">
             <img src="/LogoCafeXN.png" alt="Logo" className="h-16 w-16 mb-2" />
@@ -66,7 +104,7 @@ const AgregarProductosPage = async () => {
           </h2>
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="nombre"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Nombre
@@ -74,13 +112,14 @@ const AgregarProductosPage = async () => {
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-red rounded py-3 px-4 mb-3"
               name="nombre"
+              id="nombre"
               type="text"
               placeholder="Nombre del producto"
             />
           </div>
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="descripcion"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Descripción
@@ -88,12 +127,13 @@ const AgregarProductosPage = async () => {
             <textarea
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"
               name="descripcion"
+              id="descripcion"
               placeholder="Descripción del producto"
             />
           </div>
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="precio"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Precio
@@ -101,6 +141,7 @@ const AgregarProductosPage = async () => {
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
               name="precio"
+              id="precio"
               type="text"
               placeholder="Precio del producto"
             />
@@ -108,7 +149,7 @@ const AgregarProductosPage = async () => {
 
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="categoria"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Categoría
@@ -116,6 +157,7 @@ const AgregarProductosPage = async () => {
             <select
               className="form-select appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
               name="categoria"
+              id="categoria"
             >
               {categorias.map((e: ICategoria) => (
                 <option key={e.id} value={e.id}>
@@ -129,18 +171,21 @@ const AgregarProductosPage = async () => {
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"
               name="visitas"
+              id="visitas"
               type="hidden"
               value={0}
             />
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"
               name="likes"
+              id="likes"
               type="hidden"
               value={0}
             />
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
               name="evaluacion"
+              id="evaluacion"
               type="hidden"
               value={0}
               placeholder="Evaluación del producto"
@@ -149,7 +194,7 @@ const AgregarProductosPage = async () => {
 
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="urlsImagenes"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               URLs de Imágenes
@@ -157,13 +202,14 @@ const AgregarProductosPage = async () => {
             <textarea
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"
               name="urlsImagenes"
+              id="urlsImagenes"
               placeholder="URLs de las imágenes (separadas por salto de línea)"
             />
           </div>
 
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="stock"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Stock
@@ -171,6 +217,7 @@ const AgregarProductosPage = async () => {
             <input
               className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
               name="stock"
+              id="stock"
               type="number"
               placeholder="Cantidad en stock"
             />
@@ -178,7 +225,7 @@ const AgregarProductosPage = async () => {
 
           <div className="mb-6">
             <label
-              htmlFor=""
+              htmlFor="tienda"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
               Tienda
@@ -186,6 +233,7 @@ const AgregarProductosPage = async () => {
             <select
               className="form-select appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
               name="tienda"
+              id="tienda"
             >
               {tiendas.map((e: ITienda) => (
                 <option key={e.id} value={e.id}>
@@ -209,12 +257,18 @@ const AgregarProductosPage = async () => {
             />
           </div> */}
           <div className="flex justify-center mt-2">
-            <button
-              className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
+          <button
+              className="m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
               type="submit"
             >
               Guardar
             </button>
+            <Link
+              className="m-2 hover:shadow-form rounded-md bg-gray-600 py-3 px-8 text-center text-base font-semibold text-white outline-none"
+              href={"/Productos"}
+            >
+              Regresar
+            </Link>
           </div>
         </div>
       </div>
