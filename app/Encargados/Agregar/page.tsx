@@ -8,34 +8,19 @@ import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 
 const AgregarUPage = () => {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [roles, setRoles] = useState<IRol[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
-    fetch("http://localhost:8080/Rol", {
-      cache: "no-cache",
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `${session?.user.token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        setRoles(json);
-      });
-  }, []);
-
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
+    const rol = 4;
     const formData = new FormData(event.currentTarget);
     const response = await fetch("http://localhost:8080/Usuario", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        authorization: `Bearer ${session?.user.token}`,
+        authorization: `${session?.user.token}`,
       },
       body: JSON.stringify({
         nombre: formData.get("nombre"),
@@ -45,11 +30,11 @@ const AgregarUPage = () => {
         telefono: formData.get("telefono"),
         usuario: formData.get("usuario"),
         pwd: formData.get("pwd"),
-        idRol: formData.get("idRol"),
+        idRol: rol,
       }),
     });
     if (response.ok) {
-      router.push("/Usuarios");
+      router.push("/Encargados");
       router.refresh();
     } else {
       try {
@@ -74,7 +59,7 @@ const AgregarUPage = () => {
     <div className="flex items-center justify-center p-12 dark:text-white">
       <div className="mx-auto w-full max-w-[550px]">
         <form onSubmit={onSubmit}>
-          <h2 className="uppercase text-center">Agregar Usuario</h2>
+          <h2 className="uppercase text-center">Agregar Encargado</h2>
           <div className="mb-4">
             <label
               htmlFor="nombre"
@@ -192,26 +177,6 @@ const AgregarUPage = () => {
               </div>
             </div>
           </div>
-          <div className="mb-4">
-            <label
-              htmlFor="idRol"
-              className="mb-3 block text-base font-medium text-[#07074D] dark:text-white"
-            >
-              Rol
-            </label>
-
-            <select
-              name="idRol"
-              id="idRol"
-              className="form-select w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
-            >
-              {roles.map((e: IRol) => (
-                <option key={e.id} value={e.id}>
-                  {e.rol}
-                </option>
-              ))}
-            </select>
-          </div>
           <div>
             <center>
               <button
@@ -222,7 +187,7 @@ const AgregarUPage = () => {
               </button>
               <Link
                 className="m-2 hover:shadow-form rounded-md bg-gray-700 py-3 px-8 text-center text-base font-semibold text-white outline-none"
-                href={"/Usuarios"}
+                href={"/Encargados"}
               >
                 Regresar
               </Link>

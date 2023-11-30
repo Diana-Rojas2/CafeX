@@ -1,26 +1,28 @@
-'use client'
-import { IRol } from '@/app/models/IRol';
-import axios from 'axios';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form'
+"use client";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 export interface Props {
   params: { id: number };
 }
 
 const ActualizarUPage = ({ params }: Props) => {
-
-    const { handleSubmit, register, setValue } = useForm();
+  const { handleSubmit, register, setValue } = useForm();
   const router = useRouter();
-  const [roles, setRoles] = useState<IRol[]>([]);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    axios.get('http://localhost:8080/Rol').then(res => {
-      setRoles(res.data);
-      axios.get(`http://localhost:8080/Usuario/${params.id}`).then(prod => {
-        setValue("id", prod.data.id);  
+    const config = {
+      headers: { Authorization: `${session?.user.token}` },
+    };
+    axios
+      .get(`http://localhost:8080/Usuario/${params.id}`, config)
+      .then((prod) => {
+        setValue("id", prod.data.id);
         setValue("nombre", prod.data.nombre);
         setValue("apellidoPaterno", prod.data.apellidoPaterno);
         setValue("apellidoMaterno", prod.data.apellidoMaterno);
@@ -28,16 +30,21 @@ const ActualizarUPage = ({ params }: Props) => {
         setValue("telefono", prod.data.telefono);
         setValue("usuario", prod.data.usuario);
         setValue("pwd", prod.data.pwd);
-      } )
-    })
-  }, [])
+      });
+  }, []);
 
   const onSubmit = handleSubmit(async (formData) => {
-    await axios.put(`http://localhost:8080/Usuario/${params.id}`, formData);
+    const config = {
+      headers: { Authorization: `${session?.user.token}` },
+    };
+    await axios.put(
+      `http://localhost:8080/Usuario/${params.id}`,
+      formData,
+      config
+    );
     router.push("/Usuarios");
     router.refresh();
-  })
-
+  });
 
   return (
     <div className="flex items-center justify-center p-12 dark:text-white">
@@ -137,14 +144,14 @@ const ActualizarUPage = ({ params }: Props) => {
             />
           </div>
           <div className="mb-5">
-            <label
+            {/* <label
               htmlFor="pwd"
               className="dark:text-white mb-3 block text-base font-medium text-[#07074D]"
             >
               Contraseña
-            </label>
+            </label> */}
             <input
-              type="password"
+              type="hidden"
               {...register("pwd")}
               placeholder="Contraseña"
               className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
@@ -152,7 +159,12 @@ const ActualizarUPage = ({ params }: Props) => {
           </div>
           <div>
             <center>
-                <button type='submit' className='m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none'>Actualizar</button>
+              <button
+                type="submit"
+                className="m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
+              >
+                Actualizar
+              </button>
               <Link
                 className="m-2 hover:shadow-form rounded-md bg-gray-700 py-3 px-8 text-center text-base font-semibold text-white outline-none"
                 href={"/Usuarios"}

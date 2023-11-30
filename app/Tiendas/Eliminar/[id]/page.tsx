@@ -1,38 +1,40 @@
 "use client";
 import Link from "next/link";
 import { Props } from "../../Modificar/[id]/page";
-import { ITienda } from "@/app/models/ITienda";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const ELiminarTiendaPage = ({ params }: Props) => {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [tienda, setTienda] = useState<any>(null); 
 
   const eliminarTienda = () => {
-    axios.delete(`http://localhost:8080/Tienda/${params.id}`).then((res) => {
+    const config = {
+      headers: { Authorization: `${session?.user.token}` },
+    };
+    axios.delete(`http://localhost:8080/Tienda/${params.id}`,config ).then((res) => {
       router.push("/Tiendas");
       router.refresh();
     });
   };
 
   useEffect(() => {
-    fetch(`http://localhost:8080/Tienda/Id/${params.id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setTienda(data[0]); 
-      })
-      .catch((error) => {
-        console.error('Error fetching product data:', error);
+    const config = {
+      headers: { Authorization: `${session?.user.token}` },
+    };
+      axios.get(`http://localhost:8080/Tienda/Id/${params.id}`,config).then(res => {
+          setTienda(res.data.nombre);
       });
-  }, [params.id]);
+  }, [])
 
   return (
     <>
     {tienda && (
       <h1 className="text-4xl text-center pt-10 dark:text-white">
-        Estas seguro que desea eliminar la tienda: {tienda.nombre}
+        Estas seguro que desea eliminar la tienda: {tienda}
       </h1>
     )}
       <div className="text-center container flex items-center justify-center p-6">

@@ -1,11 +1,9 @@
 'use client';
-import { IRol } from "@/app/models/IRol";
-import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
 import React, { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
+import Swal from "sweetalert2";
 
 const CrearCuentaPage = () => {
   const router = useRouter();
@@ -22,12 +20,10 @@ const CrearCuentaPage = () => {
   }, []);
 
 
-
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
+    const rol = 2;
     const formData = new FormData(event.currentTarget);
-    const idRol = 2;
     const response = await fetch("http://localhost:8080/Usuario", {
       method: "POST",
       headers: {
@@ -41,12 +37,36 @@ const CrearCuentaPage = () => {
         telefono: formData.get("telefono"),
         usuario: formData.get("usuario"),
         pwd: formData.get("pwd"),
-        idRol: idRol,
+        idRol: rol,
       }),
     });
-    const data = await response.json();
-    alert(data.mensaje);
+    if (response.ok) {
+      Swal.fire({
+        icon: "success",
+        title: "Cuenta creada",
+        showConfirmButton: false,
+        timer: 2500
+      });
+      router.push("/Login");
+    } else {
+      try {
+        const dataText = await response.text();
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: dataText,
+        });
+      } catch (error) {
+        console.error("Error parsing response as text:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Error al procesar la respuesta del servidor.",
+        });
+      }
+    }
   }
+
 
   return (
     <div className="font-mono">
@@ -75,6 +95,7 @@ const CrearCuentaPage = () => {
                   <input
                     className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                     name="nombre"
+                    id="nombre"
                     type="text"
                     placeholder="Nombre"
                     required
@@ -91,6 +112,7 @@ const CrearCuentaPage = () => {
                     <input
                       className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                       name="apellidoPaterno"
+                      id="apellidoPaterno"
                       type="text"
                       placeholder="Apellido Paterno"
                       required
@@ -106,6 +128,7 @@ const CrearCuentaPage = () => {
                     <input
                       className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                       name="apellidoMaterno"
+                      id="apellidoMaterno"
                       type="text"
                       placeholder="Apellido Materno"
                       required
@@ -123,6 +146,7 @@ const CrearCuentaPage = () => {
                     <input
                       className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                       name="correoElectronico"
+                      id="correoElectronico"
                       type="email"
                       placeholder="Correo Electrónico"
                     />
@@ -137,6 +161,7 @@ const CrearCuentaPage = () => {
                     <input
                       className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                       name="telefono"
+                      id="telefono"
                       type="tel"
                       placeholder="Teléfono"
                     />
@@ -153,6 +178,7 @@ const CrearCuentaPage = () => {
                     <input
                       className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                       name="usuario"
+                      id="usuario"
                       type="text"
                       placeholder="Usuario"
                       required
@@ -168,6 +194,7 @@ const CrearCuentaPage = () => {
                     <input
                       className="w-full px-3 py-2 mb-2 text-sm leading-tight text-gray-700 border  rounded shadow appearance-none focus:outline-none focus:shadow-outline"
                       name="pwd"
+                      id="pwd"
                       type="password"
                       placeholder="********"
                       required

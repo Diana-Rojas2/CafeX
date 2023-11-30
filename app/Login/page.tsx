@@ -1,45 +1,50 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import router from "next/router";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { ILogin } from "../models/ILogin";
+import { useSession } from "next-auth/react";
 
-export default function Login() {
-  const [usuario, setUsuario] = useState("");
-  const [pwd, setPwd] = useState("");
+const LoginPage = () => {
+  const [error, SetError] = useState<string>("");
+  const { handleSubmit, register } = useForm<ILogin>();
+  const { data: session, status } = useSession();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setIsDarkMode(darkModeQuery.matches);
 
-    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    const darkModeHandler = (e: {
+      matches: boolean | ((prevState: boolean) => boolean);
+    }) => setIsDarkMode(e.matches);
     darkModeQuery.addListener(darkModeHandler);
 
     return () => darkModeQuery.removeListener(darkModeHandler);
   }, []);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => { 
-    e.preventDefault();
-  
-    const result = await signIn("credentials", {
-      usuario,
-      pwd,
+  const onSubmit = handleSubmit(async (formData) => {
+    const responseLogin = await signIn("credentials", {
+      usuario: formData.usuario,
+      password: formData.pwd,
+      redirect: false,
     });
 
-    if (!result?.error) {
-      // Inicio de sesión exitoso
-      router.push('/');
-    } else if (result.error === 'SomeSpecificError') {
-      // Manejar un error específico
-      console.error("Error específico:", result.error);
+    if (responseLogin?.error) {
+      SetError("Usuario y/o password incorrectos");
+      return;
     } else {
-      // Manejo genérico de error
-      console.error("Login failed:", result?.error);
+      console.log(session?.user.data.Id_Rol);
+
+        router.push("/");
+
+      
     }
-    
-  };
+  });
 
   return (
     <div className="font-mono ">
@@ -55,10 +60,13 @@ export default function Login() {
             </div>
 
             <div className="w-full lg:w-1/2 dark:bg-gray-700 bg-white p-5 rounded-lg lg:rounded-l-none">
-              <form className="px-8 pt-1 pb-8 mb-2 dark:bg-gray-700 bg-white dark:border-gray-600 rounded" onSubmit={handleLogin}>
+              <form
+                className="px-8 pt-1 pb-8 mb-2 dark:bg-gray-700 bg-white dark:border-gray-600 rounded"
+                onSubmit={onSubmit}
+              >
                 <center>
                   <Image
-                    src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
+                    src={isDarkMode ? "/LogoCafeXB.png" : "/LogoCafeXN.png"}
                     priority
                     alt="logotipo"
                     width={160}
@@ -80,8 +88,7 @@ export default function Login() {
                     id="usuario"
                     type="text"
                     placeholder="Usuario"
-                    value={usuario}
-                    onChange={(e) => setUsuario(e.target.value)}
+                    {...register("usuario")}
                   />
                 </div>
                 <div className="mb-2">
@@ -96,10 +103,11 @@ export default function Login() {
                     id="pwd"
                     type="password"
                     placeholder="********"
-                    value={pwd}
-                    onChange={(e) => setPwd(e.target.value)}
+                    {...register("pwd")}
                   />
-                  
+                </div>
+                <div className="row mt-3">
+                  <h3 className="text-red-800 text-sm"> {error}</h3>
                 </div>
 
                 <div className="mb-3 text-center">
@@ -119,12 +127,12 @@ export default function Login() {
                     Crear Cuenta!
                   </Link>
                 </div>
-
               </form>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
+export default LoginPage;

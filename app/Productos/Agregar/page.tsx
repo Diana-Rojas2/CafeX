@@ -6,54 +6,69 @@ import React from "react";
 import { ITienda } from "@/app/models/ITienda";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-
-async function getCategorias() {
-  const categorias = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}Categoria`
-  );
-  const respuesta = await categorias.json();
-  return respuesta;
-}
-
-async function getTiendas() {
-  const tiendas = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`);
-  const respuesta = await tiendas.json();
-  return respuesta;
-}
+import { useSession } from "next-auth/react";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/app/services/fbConfig";
 
 const AgregarProductosPage = () => {
   const [tiendas, setTiendas] = useState<ITienda[]>([]);
   const [categorias, setCategorias] = useState<ICategoria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const tiendasData = await getTiendas();
-        const categoriasData = await getCategorias();
-        setTiendas(tiendasData);
-        setCategorias(categoriasData);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
-      }
-    }
-    fetchData();
+    fetch("http://localhost:8080/Categoria", {
+      cache: "no-cache",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `${session?.user.token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        setCategorias(json);
+      });
   }, []);
-  
+
+  useEffect(() => {
+    fetch("http://localhost:8080/Tienda", {
+      cache: "no-cache",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `${session?.user.token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        setTiendas(json);
+      });
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const urlsImagenesInput = formData.get("urlsImagenes") as string;
-    const urlsImagenesArray = urlsImagenesInput.split(/\r?\n/).filter(Boolean);
+    const files = formData.getAll("imagenes");
+
+    // SUBIR IMAGENES FIREBASE
+    const imageUrls = await Promise.all(
+      files.map(async (file) => {
+        const fileName = (file as File).name;
+        const storageRef = ref(storage, `imagenes/${fileName}`);
+        await uploadBytes(storageRef, file as Blob);
+        const imageUrlFromStorage = await getDownloadURL(storageRef);
+        return imageUrlFromStorage;
+      })
+    );
+
     const response = await fetch(`http://localhost:8080/Producto`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        authorization: ` ${session?.user.token}`
       },
       body: JSON.stringify({
         nombre: formData.get("nombre"),
@@ -65,7 +80,7 @@ const AgregarProductosPage = () => {
           likes: formData.get("likes"),
           evaluacion: formData.get("evaluacion"),
         },
-        urlsImagenes: urlsImagenesArray,
+        urlsImagenes: imageUrls,
         stock: formData.get("stock"),
         tienda: formData.get("tienda"),
       }),
@@ -90,6 +105,23 @@ const AgregarProductosPage = () => {
         });
       }
     }
+  }
+
+  if (session?.user.data.Id_Rol === 2) {
+    return (
+      <>
+        <center>
+          <img
+            className="w-72"
+            src="https://cdn-icons-png.flaticon.com/512/7564/7564865.png"
+            alt="cafe triste"
+          />
+          <h2 className="text-4xl text-red-600 text-center">
+            Página no autorizada
+          </h2>
+        </center>
+      </>
+    );
   }
 
   return (
@@ -194,16 +226,19 @@ const AgregarProductosPage = () => {
 
           <div className="mb-6">
             <label
-              htmlFor="urlsImagenes"
+              htmlFor="fileInput"
               className="block tracking-wide text-grey-darker font-bold mb-2"
             >
-              URLs de Imágenes
+              Imágenes del Producto
             </label>
-            <textarea
-              className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"
-              name="urlsImagenes"
-              id="urlsImagenes"
-              placeholder="URLs de las imágenes (separadas por salto de línea)"
+            <input
+              type="file"
+              id="fileInput"
+              name="imagenes"
+              accept="image/*"
+              multiple
+              className="block w-full text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+              aria-labelledby="file_input_label"
             />
           </div>
 
@@ -242,22 +277,8 @@ const AgregarProductosPage = () => {
               ))}
             </select>
           </div>
-          {/* <div className="mb-6">
-            <label
-              htmlFor="product-image"
-              className="block tracking-wide text-grey-darker font-bold mb-2"
-            >
-              Imagen
-            </label>
-            <input
-              type="file"
-              className="block w-full text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-              id="file_input"
-              aria-labelledby="file_input_label"
-            />
-          </div> */}
           <div className="flex justify-center mt-2">
-          <button
+            <button
               className="m-2 hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
               type="submit"
             >

@@ -15,28 +15,9 @@ import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const coordenadasTec = [19.882814, -97.3930258] as LatLngExpression;
-
-async function getLocalidades() {
-  const localidades = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}Localidad`
-  );
-  const respuesta = await localidades.json();
-  return respuesta;
-}
-
-async function getVendedores(): Promise<IUsuario[]> {
-  const datos = await fetch("http://localhost:8080/Usuario", {
-    cache: "no-cache",
-  });
-  const json = await datos.json();
-
-  const usuariosVendedores = json.filter(
-    (usuario: IUsuario) => usuario.idRol === 3
-  );
-  return usuariosVendedores;
-}
 
 const AgregarTiendaPage = () => {
   const [localidades, setLocalidades] = useState<ILocalidad[]>([]);
@@ -46,6 +27,37 @@ const AgregarTiendaPage = () => {
     null
   );
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    fetch("http://localhost:8080/Localidad", {
+      cache: "no-cache",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `${session?.user.token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        setLocalidades(json);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/Usuario", {
+      cache: "no-cache",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `${session?.user.token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        setUsuarios(json);
+      });
+  }, []);
 
   const [markerPosition, setMarkerPosition] =
     useState<LatLngExpression>(coordenadasTec);
@@ -63,26 +75,11 @@ const AgregarTiendaPage = () => {
     return null;
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const localidadesData = await getLocalidades();
-        const usuariosData = await getVendedores();
-        setLocalidades(localidadesData);
-        setUsuarios(usuariosData);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
+    const idUsuario = session?.user.data.Id;
     if (Array.isArray(markerPosition) && markerPosition.length === 2) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
@@ -90,6 +87,7 @@ const AgregarTiendaPage = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            authorization: `${session?.user.token}`,
           },
           body: JSON.stringify({
             nombre: formData.get("nombre"),
@@ -100,9 +98,10 @@ const AgregarTiendaPage = () => {
               coordenadas: [markerPosition[0], markerPosition[1]], // Acceder a las coordenadas del marcador
             },
             idLocalidad: formData.get("idLocalidad"),
-            idUsuario: formData.get("idUsuario"),
+            idUsuario: idUsuario,
           }),
-        });
+        }
+      );
       if (response.ok) {
         router.push("/Tiendas");
         router.refresh();
@@ -188,20 +187,22 @@ const AgregarTiendaPage = () => {
               value={"Point"}
             />
 
-            <div>
+{/*             <div>
               <label htmlFor="idUsuario">Usuario</label>
               <select
                 name="idUsuario"
                 id="idUsuario"
                 className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
               >
-                {usuarios.map((e: IUsuario) => (
-                  <option key={e.id} value={e.id}>
-                    {e.usuario}
-                  </option>
-                ))}
+                {usuarios
+                  .filter((usuario) => usuario.idRol === 3)
+                  .map((usuario) => (
+                    <option key={usuario.id} value={usuario.id}>
+                      {usuario.usuario}
+                    </option>
+                  ))}
               </select>
-            </div>
+            </div> */}
 
             {/* <div>
                 <label htmlFor="idLocalidad">Localidad</label>

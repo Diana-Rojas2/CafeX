@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import SessionContextGlobal from "./context/SessionContext";
 
 export const metadata: Metadata = {
   title: "CafeX",
@@ -14,7 +15,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="bg-[#edf5e3] dark:bg-gray-800">
-      <div className="container">{children}</div>
+      <SessionContextGlobal>
+          <div className="container">
+            {children}
+          </div>
+        </SessionContextGlobal>
       </body>
     </html>
   );

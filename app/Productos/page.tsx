@@ -6,6 +6,7 @@ import { IProducto } from "../models/IProducto";
 import { ITienda } from "../models/ITienda";
 import { ICategoria } from "../models/ICategoria";
 import "public/estilo.css";
+import { useSession } from "next-auth/react";
 
 interface SubFilter {
   id: string;
@@ -47,6 +48,7 @@ const filtersData: Filter[] = [
 
 
 function ProductosPage() {
+  const { data: session, status } = useSession();
   const [productos, setProductos] = useState<IProducto[]>([]);
   const [filters, setFilters] = useState<Filter[]>(filtersData);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
@@ -136,6 +138,10 @@ function ProductosPage() {
           `${process.env.NEXT_PUBLIC_BACKEND_URL}Producto`,
           {
             cache: "no-cache",
+            method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
           }
         );
         const json = await datos.json();
@@ -149,30 +155,32 @@ function ProductosPage() {
   }, []);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const datos = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
-          {
-            cache: "no-cache",
-          }
-        );
-        const json = await datos.json();
+    fetch('http://localhost:8080/Tienda',
+      {
+        cache: "no-cache",
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session?.user.token}`
+        },
+      })
+      .then(response => response.json())
+      .then(json => {
         setTiendas(json);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-      }
-    }
-
-    fetchData();
-  }, []);
+        
+      });
+  }, [])
 
   useEffect(() => {
     async function fetchCategories() {
-      //Obtener categorías desde la API
       try {
         const categoriasDatos = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Categoria`, {
           cache: "no-cache",
+          method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session?.user.token}`
+        },
         });
         const categorias = await categoriasDatos.json();
 
@@ -201,6 +209,11 @@ function ProductosPage() {
       try {
         const tiendasDatos = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`, {
           cache: "no-cache",
+          method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session?.user.token}`
+        },
         });
         const tiendas = await tiendasDatos.json();
 
@@ -234,12 +247,14 @@ function ProductosPage() {
       <Sidebar filters={filters} handleFilterChange={handleFilterChange} />
 
       <div className="flex-1 p-8">
-        <Link
-          className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
-          href={"/Productos/Agregar"}
-        >
-          Agregar
-        </Link>
+      {session && session.user.data.Id_Rol !== 2 && ( 
+          <Link
+            className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
+            href={"/Productos/Agregar"}
+          >
+            Agregar
+          </Link>
+        )}
         <h1 className="text-3xl font-bold mb-4 text-center text-brown mt-4 dark:text-white">
           Productos
         </h1>
@@ -300,19 +315,6 @@ function ProductosPage() {
                             {producto.interacciones.evaluacion}
                           </p>
                         </div>
-
-                        {/*  Corazon like */}
-                        <button className="btn">
-                          <svg
-                            className="icon"
-                            width="30"
-                            height="30"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"></path>
-                          </svg>
-                        </button>
                       </div>
                       <Link href={`/Productos/Detalles/${producto.id}`}>
                         <h3 className="font-black text-gray-800 md:text-3xl dark:text-white">
@@ -340,6 +342,7 @@ function ProductosPage() {
                             )
                         )}
                       </Link>
+                      {session && session.user.data.Id_Rol !== 2 && ( 
                       <div className="flex flex-wrap items-center justify-center mt-2">
                         <Link
                           className="hover:shadow-form rounded-md bg-green-700 py-2 px-4 text-center text-base font-semibold text-white outline-none"
@@ -355,6 +358,7 @@ function ProductosPage() {
                           Eliminar
                         </Link>
                       </div>
+                      )}
                     </div>
                   </div>
                 </div>

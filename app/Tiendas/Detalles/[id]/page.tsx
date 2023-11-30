@@ -4,25 +4,40 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import MarkerIcon from "leaflet/dist/images/marker-icon.png";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 export interface Props {
   params: { id: number };
 }
 
-const TiendasPage = ({ params }: Props) => {
-  const coordenadasTec = [19.882814, -97.3930258] as LatLngExpression;
+const TiendasPage: React.FC<Props> = (props) => {
   const [tienda, setTienda] = useState<any>(null);
+  const [mapPosition, setMapPosition] = useState<LatLngExpression>([19.882814, -97.3930258]);
+
+useEffect(() => {
+  if (tienda) {
+    setMapPosition(tienda.ubicacion.coordenadas);
+  }
+}, [tienda]);
+
+
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    fetch(`http://localhost:8080/Tienda/Id/${params.id}`)
+    fetch(`http://localhost:8080/Tienda/Id/${props.params.id}`, {
+      cache: "no-cache",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: ` ${session?.user.token}`,
+      },
+    })
       .then((response) => response.json())
-      .then((data) => {
-        setTienda(data[0]);
-      })
-      .catch((error) => {
-        console.error("Error fetching product data:", error);
+      .then((json) => {
+        setTienda(json);
       });
-  }, [params.id]);
+  }, []);
+
   return (
     <>
       {tienda && (
@@ -47,7 +62,7 @@ const TiendasPage = ({ params }: Props) => {
         <div className="w-full h-full">
           <MapContainer
             style={{ width: "100%", height: "100%" }}
-            center={coordenadasTec}
+            center={mapPosition}
             zoom={13}
             scrollWheelZoom={false}
           >
@@ -56,7 +71,7 @@ const TiendasPage = ({ params }: Props) => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <Marker
-              position={coordenadasTec}
+              position={mapPosition}
               icon={
                 new Icon({
                   iconUrl: MarkerIcon.src,
@@ -65,9 +80,6 @@ const TiendasPage = ({ params }: Props) => {
                 })
               }
             >
-              <Popup>
-                A pretty CSS3 popup. <br /> Easily customizable.
-              </Popup>
             </Marker>
           </MapContainer>
         </div>

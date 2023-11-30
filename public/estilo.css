@@ -195,3 +195,38 @@
   .longitud-container {
       display: none;
   }
+
+  /* corazon.css */
+
+.cont input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.cont {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cont svg {
+  position: absolute; /* o absolute dependiendo de lo que elijas */
+  bottom: 0;
+  right: 0;
+  height: 50px;
+  width: 50px;
+  transition: all 0.3s;
+  fill: #666;
+}
+
+.cont svg:hover {
+  transform: scale(1.1);
+}
+
+.cont input:checked ~ svg {
+  fill: #e3474f;
+}

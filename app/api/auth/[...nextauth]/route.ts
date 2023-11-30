@@ -1,10 +1,13 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import NextAuth from "next-auth";
+import { profile } from "console";
 
 const handler = NextAuth({
     providers: [
+        
         CredentialsProvider({
+            
             name: "Credentials",
             credentials: {
                 usuario: { label: "Username", type: "text", placeholder: "jsmith" },
@@ -12,7 +15,7 @@ const handler = NextAuth({
             },
             async authorize(credentials, req) {
                 const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND_URL}Usuario/login`,
+                    `http://localhost:8080/Usuario/login`,
                     {
                         method: "POST",
                         body: JSON.stringify({
@@ -22,22 +25,33 @@ const handler = NextAuth({
                         headers: { "Content-Type": "application/json" },
                     }
                 );
-                const userPost = await res.json();
+                const user = await res.json();
+                console.log(user);
+                if (user.error) {
 
-                if (userPost.correoElectronico) {
-                    const user = {
-                        id: userPost.id,
-                        name: userPost.nombre,
-                        email: userPost.correoElectronico
-                    };
-                    return user;
+                    throw user;
                 }
                 else {
-                    return null;
+                    return user;
                 }
             }
         })
-    ]
+    ],
+    callbacks : {
+        async jwt({token, user}){
+            if(user) token.Id_Rol = user.Id_Rol;
+           return {...token, ...user};
+        },
+        async session({session, token}){
+            session.user = token as any;
+            if(session.user) session.user.Id_Rol = token.Id_Rol;
+            return session;
+        }
+    },
+    pages:{
+        signIn: "/Login",
+        signOut: "/Login"
+    }
 })
 
 export { handler as GET, handler as POST }

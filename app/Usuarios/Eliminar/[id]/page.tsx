@@ -1,26 +1,31 @@
 'use client'
-import { useForm } from "react-hook-form";
 import { Props } from "../../Actualizar/[id]/page";
 import { useEffect, useState } from "react";
-import { IUsuario } from "@/app/models/IUsuario";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const EliminarUPage = ({params} : Props) => {
-
+  const { data: session, status } = useSession();
     const router = useRouter();
     const [usuario, setUsuario] = useState<string>("")
 
     const eliminarUsuario = () =>{
-        axios.delete(`http://localhost:8080/Usuario/${params.id}`).then(res => {
+      const config = {
+        headers: { Authorization: `${session?.user.token}` },
+      };
+        axios.delete(`http://localhost:8080/Usuario/${params.id}`,config).then(res => {
             router.push("/Usuarios");
             router.refresh();
         });
     }
 
     useEffect(() => {
-        axios.get(`http://localhost:8080/Usuario/${params.id}`).then(res => {
+      const config = {
+        headers: { Authorization: `${session?.user.token}` },
+      };
+        axios.get(`http://localhost:8080/Usuario/${params.id}`,config).then(res => {
             setUsuario(res.data.nombre);
         });
     }, [])

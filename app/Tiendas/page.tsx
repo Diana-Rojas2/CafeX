@@ -4,81 +4,79 @@ import React, { useEffect, useState } from "react";
 import { ITienda } from "../models/ITienda";
 import { ILocalidad } from "../models/ILocalidad";
 import { IUsuario } from "../models/IUsuario";
+import { useSession } from "next-auth/react";
 
 function TiendasPage() {
-  // const tiendas : ITienda[] = await getTiendas();
   const [tiendas, setTiendas] = useState<ITienda[]>([]);
   const [localidades, setLocalidades] = useState<ILocalidad[]>([]);
   const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const datos = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}Tienda`,
-          {
-            cache: "no-cache",
-          }
-        );
-        const json = await datos.json();
+    fetch('http://localhost:8080/Tienda',
+      {
+        cache: "no-cache",
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session?.user.token}`
+        },
+      })
+      .then(response => response.json())
+      .then(json => {
         setTiendas(json);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-      }
-    }
+        
+      });
+  }, [])
 
-    fetchData();
-  }, []);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const datos = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}Localidad`,
-          {
-            cache: "no-cache",
-          }
-        );
-        const json = await datos.json();
+    fetch('http://localhost:8080/Localidad',
+      {
+        cache: "no-cache",
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session?.user.token}`
+        },
+      })
+      .then(response => response.json())
+      .then(json => {
         setLocalidades(json);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-      }
-    }
-
-    fetchData();
-  }, []);
+        
+      });
+  }, [])
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const datos = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}Usuario`,
-          {
-            cache: "no-cache",
-          }
-        );
-        const json = await datos.json();
+    fetch('http://localhost:8080/Usuario',
+      {
+        cache: "no-cache",
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session?.user.token}`
+        },
+      })
+      .then(response => response.json())
+      .then(json => {
         setUsuarios(json);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-      }
-    }
-
-    fetchData();
-  }, []);
+        
+      });
+  }, [])
 
   return (
     <>
       <div className="flex min-h-screen items-center justify-center  dark:bg-gray-800">
         <div className="mx-auto p-2">
           <div className="flex-1 p-8">
+          {session && session.user.data.Id_Rol !== 2 && ( 
             <Link
               className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
               href={"/Tiendas/Agregar"}
             >
               Agregar
             </Link>
+          )}
             <h1 className="mt-4 text-3xl font-bold mb-4 text-center text-brown dark:text-white">
               Tiendas
             </h1>
@@ -122,6 +120,7 @@ function TiendasPage() {
                           )
                       )}
                     </Link>
+                    {session && session.user.data.Id_Rol !== 2 && ( 
                     <div className="flex justify-center mt-2">
                       <Link
                         className="hover:shadow-form rounded-md bg-green-700 py-2 px-5 text-center text-base font-semibold text-white outline-none"
@@ -137,6 +136,7 @@ function TiendasPage() {
                         Eliminar
                       </Link>
                     </div>
+                    )}
                   </div>
                 </div>
               ))}

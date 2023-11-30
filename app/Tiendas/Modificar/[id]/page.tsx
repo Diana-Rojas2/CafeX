@@ -1,7 +1,4 @@
 "use client";
-import { Icon, LatLngExpression } from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import MarkerIcon from "leaflet/dist/images/marker-icon.png";
 import "leaflet/dist/leaflet.css";
 import { ILocalidad } from "@/app/models/ILocalidad";
 import Link from "next/link";
@@ -11,36 +8,39 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { IUsuario } from "@/app/models/IUsuario";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
 
 export interface Props {
   params: { id: number };
 }
 
-const coordenadasTec = [19.882814, -97.3930258] as LatLngExpression;
-
 const ModificarTiendaPage = ({ params }: Props) => {
-  const [localidades, setLocalidades] = useState<ILocalidad[]>([]);
-  const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
+  const { data: session, status } = useSession();
   const { handleSubmit, register, setValue } = useForm();
   const router = useRouter();
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/Tienda/Id/${params.id}`).then((prod) => {
-      const tienda = prod.data.find((t: { id: number }) => t.id === params.id);
+    const config = {
+      headers: { Authorization: `${session?.user.token}` },
+    };
+    axios.get(`http://localhost:8080/Tienda/Id/${params.id}`,config).then((tienda) => {
       if (tienda) {
-        setValue("id", tienda.id);
-        setValue("nombre", tienda.nombre);
-        setValue("correoElectronico", tienda.correoElectronico);
-        setValue("telefono", tienda.telefono);
+        setValue("id", tienda.data.id);
+        setValue("nombre", tienda.data.nombre);
+        setValue("correoElectronico", tienda.data.correoElectronico);
+        setValue("telefono", tienda.data.telefono);
       } else {
         console.error("No se encontró la tienda con el ID proporcionado.");
       }
     });
-  }, [params.id, setValue]);
+  }, []);
 
   const onSubmit = handleSubmit(async (formData) => {
+    const config = {
+      headers: { Authorization: `${session?.user.token}` },
+    };
     try {
-      await axios.put(`http://localhost:8080/Tienda/${params.id}`, formData);
+      await axios.put(`http://localhost:8080/Tienda/${params.id}`, formData, config);
       router.push("/Tiendas");
       router.refresh();
     } catch (error) {

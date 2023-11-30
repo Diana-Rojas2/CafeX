@@ -4,10 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
+import { useSession, signOut } from "next-auth/react";
 
 const iconColor = "text-black dark:text-white";
 
 const NavB = () => {
+  const { data: session, status } = useSession();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -89,24 +91,38 @@ const NavB = () => {
                   Inicio
                 </Link>
               </li>
-              <li>
+              {session && session.user.data.Id_Rol === 1 ? (
+        <><li>
+                  <Link
+                    href={"/Usuarios"}
+                    className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    aria-current="page"
+                  >
+                    Usuarios
+                  </Link>
+                </li><li>
+                    <Link
+                      href={"/Vendedores/Solicitudes"}
+                      className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                      aria-current="page"
+                    >
+                      Solicitudes
+                    </Link>
+                  </li></>
+                  
+      ) : (
+        <li>
                 <Link
-                  href={"/Usuarios"}
+                  href={"/Encargados"}
                   className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
                   aria-current="page"
                 >
-                  Usuarios
+                  Encargados
                 </Link>
               </li>
-              <li>
-                <Link
-                  href={"/Vendedores/Solicitudes"}
-                  className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                  aria-current="page"
-                >
-                  Solicitudes
-                </Link>
-              </li>
+      )}
+              
+              
               <li>
                 <Link
                   href="/Productos"
@@ -124,12 +140,21 @@ const NavB = () => {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/Inicio/Login"
+
+                {session ? (
+                  <button
+                  onClick={() => signOut()} 
                   className="bg-[#a2b38b] dark:bg-gray-900  block mr-5 py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
                 >
                   Cerrar Sesion
+                </button>
+                ) : (
+                  <Link
+                      className="bg-[#a2b38b] dark:bg-gray-900  block mr-5 py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700" 
+                      href={"/Login"}>
+                  Iniciar Sesion
                 </Link>
+                )}
               </li>
               <li>
                 <div className="relative mt-3 md:hidden">
