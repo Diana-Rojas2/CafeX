@@ -1,38 +1,41 @@
 "use client";
-import { IRol } from "@/app/models/IRol";
-import { IUsuario } from "@/app/models/IUsuario";
 import Link from "next/link";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
+import { ITienda } from "@/app/models/ITienda";
 
 const AgregarUPage = () => {
   const { data: session } = useSession();
-  const [roles, setRoles] = useState<IRol[]>([]);
   const router = useRouter();
+  const [tiendas, setTiendas] = useState<ITienda[]>([]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const rol = 4;
+
     const formData = new FormData(event.currentTarget);
-    const response = await fetch("http://localhost:8080/Usuario", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `${session?.user.token}`,
-      },
-      body: JSON.stringify({
-        nombre: formData.get("nombre"),
-        apellidoPaterno: formData.get("apellidoPaterno"),
-        apellidoMaterno: formData.get("apellidoMaterno"),
-        correoElectronico: formData.get("correoElectronico"),
-        telefono: formData.get("telefono"),
-        usuario: formData.get("usuario"),
-        pwd: formData.get("pwd"),
-        idRol: rol,
-      }),
-    });
+    const response = await fetch(
+      "http://localhost:8080/Encargado/NuevoEncargado",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${session?.user.token}`,
+        },
+        body: JSON.stringify({
+          nombre: formData.get("nombre"),
+          apellidoPaterno: formData.get("apellidoPaterno"),
+          apellidoMaterno: formData.get("apellidoMaterno"),
+          correoElectronico: formData.get("correoElectronico"),
+          telefono: formData.get("telefono"),
+          usuario: formData.get("usuario"),
+          pwd: formData.get("pwd"),
+          idTienda: formData.get("idTienda"),
+          idVendedor: session?.user.data.Id,
+        }),
+      }
+    );
     if (response.ok) {
       router.push("/Encargados");
       router.refresh();
@@ -53,6 +56,38 @@ const AgregarUPage = () => {
         });
       }
     }
+  }
+
+  useEffect(() => {
+    if (session?.user.data.Id) {
+      fetch("http://localhost:8080/Tienda", {
+        cache: "no-cache",
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${session.user.token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          // Filtrar las tiendas por el ID del usuario actual
+          const tiendasFiltradas = json.filter(
+            (tienda: ITienda) =>
+              tienda.idUsuario === String(session.user.data.Id)
+          );
+          setTiendas(tiendasFiltradas);
+        });
+    }
+  }, [session]);
+
+  if (session?.user.data.Id_Rol !== 3) {
+    return (
+      <>
+      <center>
+      <img className="w-72" src="https://cdn-icons-png.flaticon.com/512/7564/7564865.png" alt="cafe triste" />
+        <h2 className="text-4xl text-red-600 text-center">Página no autorizada</h2>
+      </center></>
+    );
   }
 
   return (
@@ -174,6 +209,28 @@ const AgregarUPage = () => {
                   placeholder="Contraseña"
                   className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
                 />
+              </div>
+            </div>
+
+            <div className="w-full px-3 sm:w-1/2">
+              <div className="mb-5">
+                <label
+                  htmlFor="idTienda"
+                  className="mb-3 block text-base font-medium text-[#07074D] dark:text-white"
+                >
+                  Tienda
+                </label>
+                <select
+                  name="idTienda"
+                  id="idTienda"
+                  className="form-select w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#402E32] focus:shadow-md"
+                >
+                  {tiendas.map((e: ITienda) => (
+                    <option key={e.id} value={e.id}>
+                      {e.nombre}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

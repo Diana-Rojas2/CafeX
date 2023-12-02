@@ -7,6 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
 import { faCartShopping } from "@fortawesome/free-solid-svg-icons/faCartShopping";
 import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 const iconColor = "text-black dark:text-white";
 
@@ -17,6 +19,8 @@ const Nav: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const node = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -54,6 +58,19 @@ const Nav: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleWantToBeSellerClick = () => {
+    if (!session) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Debes iniciar sesión para solicitar ser vendedor',
+        showConfirmButton: false,
+        timer: 2000, 
+      });
+    } else {
+      router.push("/Vendedores");
+    }
+  };
 
   return (
     <div className="bg-[#a2b38b] border-gray-200 dark:bg-gray-900" ref={node}>
@@ -163,14 +180,6 @@ const Nav: React.FC = () => {
           </Link>
 
           <Link
-            href={"/Usuarios"}
-            className="block py-2 px-3  bg-[#a2b38b] dark:bg-gray-900 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-            aria-current="page"
-          >
-            Usuarios
-          </Link>
-
-          <Link
             href="/Productos"
             className="block py-2 px-3  bg-[#a2b38b] dark:bg-gray-900 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
           >
@@ -198,10 +207,18 @@ const Nav: React.FC = () => {
         />
       </div>
       <div className="flex justify-end">
-        <Link className="text-gray-900 dark:text-white" href={"/Vendedores"}>
+      <span 
+          className="text-gray-900 dark:text-white cursor-pointer" 
+          onClick={handleWantToBeSellerClick} 
+        >
           ¿Quieres ser vendedor?
-        </Link>
+        </span>
       </div>
+      {showLoginAlert && !session && ( 
+        <div className="bg-red-200 text-red-800 p-2 mt-2 rounded">
+          Debes iniciar sesión para ser vendedor.
+        </div>
+      )}
       <Cart cartOpen={cartOpen} toggleCart={toggleCart} />
     </div>
   );

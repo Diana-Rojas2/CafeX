@@ -247,7 +247,7 @@ function ProductosPage() {
       <Sidebar filters={filters} handleFilterChange={handleFilterChange} />
 
       <div className="flex-1 p-8">
-      {session && session.user.data.Id_Rol !== 2 && ( 
+      {session && session?.user.data.Id_Rol === 3 || session?.user.data.Id_Rol === 4 && ( 
           <Link
             className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
             href={"/Productos/Agregar"}
@@ -342,7 +342,7 @@ function ProductosPage() {
                             )
                         )}
                       </Link>
-                      {session && session.user.data.Id_Rol !== 2 && ( 
+                      {session && session?.user.data.Id_Rol === 3 || session?.user.data.Id_Rol === 4 && ( 
                       <div className="flex flex-wrap items-center justify-center mt-2">
                         <Link
                           className="hover:shadow-form rounded-md bg-green-700 py-2 px-4 text-center text-base font-semibold text-white outline-none"

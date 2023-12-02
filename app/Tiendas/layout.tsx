@@ -10,13 +10,18 @@ const layout = ({
     children: React.ReactNode
 }) => {
     const { data: session } = useSession();
+    let navigationComponent;
+
+    if (session && session.user.data.Id_Rol === 2) {
+        navigationComponent = <Nav />; 
+      } else if (session && session.user.data.Id_Rol !== 2) {
+        navigationComponent = <NavB />; 
+      } else {
+        navigationComponent = <Nav />; 
+      }
     return (
         <>
-        {session && session.user.data.Id_Rol === 2 ? (
-        <Nav />
-      ) : (
-        <NavB />
-      )}
+        {navigationComponent}
         <div className="container">
             {children}
         </div>

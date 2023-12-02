@@ -31,6 +31,16 @@ const EliminarProductosPage = ({ params }: Props) => {
       });
   }, [])
 
+  if (session?.user.data.Id_Rol === 2) {
+    return (
+      <>
+      <center>
+      <img className="w-72" src="https://cdn-icons-png.flaticon.com/512/7564/7564865.png" alt="cafe triste" />
+        <h2 className="text-4xl text-red-600 text-center">Página no autorizada</h2>
+      </center></>
+    );
+  }
+
   return (
     <>
       <h1 className="text-4xl text-center pt-10 dark:text-white">

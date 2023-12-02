@@ -13,21 +13,39 @@ function TiendasPage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    fetch('http://localhost:8080/Tienda',
-      {
-        cache: "no-cache",
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `${session?.user.token}`
-        },
-      })
-      .then(response => response.json())
-      .then(json => {
-        setTiendas(json);
-        
-      });
-  }, [])
+    if(session && session.user.data.Id_Rol === 3) {
+      fetch('http://localhost:8080/Tienda',
+        {
+          cache: "no-cache",
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `${session?.user.token}`
+          },
+        })
+        .then(response => response.json())
+        .then(json => {
+          // Filtrar las tiendas según el idUsuario de la sesión
+          const filteredTiendas = json.filter((tienda: ITienda) => tienda.idUsuario === String(session.user.data.Id));
+          setTiendas(filteredTiendas);
+        });
+    } else {
+      // Si no es un usuario con Id_Rol igual a 3, muestra todas las tiendas
+      fetch('http://localhost:8080/Tienda',
+        {
+          cache: "no-cache",
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `${session?.user.token}`
+          },
+        })
+        .then(response => response.json())
+        .then(json => {
+          setTiendas(json);
+        });
+    }
+  }, [session]);
 
 
   useEffect(() => {
@@ -69,7 +87,7 @@ function TiendasPage() {
       <div className="flex min-h-screen items-center justify-center  dark:bg-gray-800">
         <div className="mx-auto p-2">
           <div className="flex-1 p-8">
-          {session && session.user.data.Id_Rol !== 2 && ( 
+          {session && session.user.data.Id_Rol === 3 && ( 
             <Link
               className="hover:shadow-form rounded-md bg-[#2F4858] py-3 px-8 text-center text-base font-semibold text-white outline-none"
               href={"/Tiendas/Agregar"}
@@ -120,7 +138,7 @@ function TiendasPage() {
                           )
                       )}
                     </Link>
-                    {session && session.user.data.Id_Rol !== 2 && ( 
+                    {session && session.user.data.Id_Rol === 3 && ( 
                     <div className="flex justify-center mt-2">
                       <Link
                         className="hover:shadow-form rounded-md bg-green-700 py-2 px-5 text-center text-base font-semibold text-white outline-none"

@@ -120,13 +120,13 @@ const VendedoresPage = () => {
                 <td className="p-2 text-justify md:border md:border-grey-500 md:table-cell">
                 <Link
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 border border-blue-500 rounded"
-                    href={``}
+                    href={`/Vendedores/Autorizar/${e.idVendedor}/${e.idUsuario}`}
                   >
                     Autorizar
                   </Link>
                   <Link
                     className="ms-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 border border-red-500 rounded"
-                    href={``}
+                    href={`/Vendedores/Rechazar/${e.idVendedor}/${e.idUsuario}`}
                   >
                     Rechazar
                   </Link>
