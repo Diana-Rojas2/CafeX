@@ -44,7 +44,7 @@ const handler = NextAuth({
         },
         async session({session, token}){
             session.user = token as any;
-            if(session.user) session.user.Id_Rol = token.Id_Rol;
+            if(session.user) session.user.data.Id_Rol = token.Id_Rol;
             return session;
         }
     },

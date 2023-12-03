@@ -8,24 +8,9 @@ import NavB from "./components/navb";
 const InicioPage = () => {
   const { data: session } = useSession();
 
-  let navigationComponent;
-
-  if (session && session.user.data.Id_Rol === 2) {
-    navigationComponent = <Nav />; 
-  } else if (session && session.user.data.Id_Rol !== 2) {
-    navigationComponent = <NavB />; 
-  } else {
-    navigationComponent = <Nav />; 
-  }
-
   return (
     <>
-      {/* {session && session.user.data.Id_Rol === 2 ? (
-        <Nav />
-      ) : (
-        <NavB />
-      )} */}
-      {navigationComponent}
+      {session ? session.user.data.Id_Rol === 2 ? <Nav /> : <NavB /> : <Nav />}
 
       <main className="my-8">
         <div className="container mx-auto px-6">
