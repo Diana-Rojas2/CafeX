@@ -13,15 +13,21 @@ const Correo = () => {
   if (session) {
     return (
       <>
+      <p className="dark:text-white">
       Iniciaste sesion como: {session.user?.data.Correo_Electronico} <br />
-        <code>{JSON.stringify(session, null, 2)}</code>
+        {/* <code>{JSON.stringify(session, null, 2)}</code> */}
+        <br />
+      </p>
       </>
     );
   }
 
   return (
     <>
-      Not signed in <br />
+    <p className="dark:text-white">
+    Not signed in <br />
+      </p>
+      
     </>
   );
 }

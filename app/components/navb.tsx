@@ -15,15 +15,16 @@ const NavB = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setIsDarkMode(darkModeQuery.matches);
 
-    const darkModeHandler = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => setIsDarkMode(e.matches);
+    const darkModeHandler = (e: {
+      matches: boolean | ((prevState: boolean) => boolean);
+    }) => setIsDarkMode(e.matches);
     darkModeQuery.addListener(darkModeHandler);
 
     return () => darkModeQuery.removeListener(darkModeHandler);
   }, []);
-
 
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
@@ -48,13 +49,12 @@ const NavB = () => {
     <>
       <nav className="bg-[#a2b38b]  border-gray-200 dark:bg-gray-900 ">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between p-2">
-          
           <Link
             href="/"
             className=" flex items-center space-x-3 rtl:space-x-reverse"
           >
             <Image
-              src={isDarkMode ? '/LogoCafeXB.png' : '/LogoCafeXN.png'}
+              src={isDarkMode ? "/LogoCafeXB.png" : "/LogoCafeXN.png"}
               alt="logotipo"
               priority={true}
               width={60}
@@ -91,16 +91,18 @@ const NavB = () => {
                   Inicio
                 </Link>
               </li>
-              {session && session.user.data.Id_Rol === 1 ? (
-        <><li>
-                  <Link
-                    href={"/Usuarios"}
-                    className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                    aria-current="page"
-                  >
-                    Usuarios
-                  </Link>
-                </li><li>
+              {session && session.user.data.Id_Rol === 1 && (
+                <>
+                  <li>
+                    <Link
+                      href={"/Usuarios"}
+                      className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                      aria-current="page"
+                    >
+                      Usuarios
+                    </Link>
+                  </li>
+                  <li>
                     <Link
                       href={"/Vendedores/Solicitudes"}
                       className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
@@ -108,21 +110,31 @@ const NavB = () => {
                     >
                       Solicitudes
                     </Link>
-                  </li></>
-                  
-      ) : (
-        <li>
+                  </li>
+                </>
+              )}
+              {session && session.user.data.Id_Rol === 3 && (
+                <li>
+                  <Link
+                    href={"/Encargados"}
+                    className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    aria-current="page"
+                  >
+                    Encargados
+                  </Link>
+                </li>
+              )}
+
+              <li>
                 <Link
-                  href={"/Encargados"}
+                  href={"Productos/Pedidos"}
                   className="bg-[#a2b38b] dark:bg-gray-900 block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
                   aria-current="page"
                 >
-                  Encargados
+                  Pedidos
                 </Link>
               </li>
-      )}
-              
-              
+
               <li>
                 <Link
                   href="/Productos"
@@ -131,32 +143,35 @@ const NavB = () => {
                   Productos
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/Tiendas"
-                  className="bg-[#a2b38b] dark:bg-gray-900  block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  Tiendas
-                </Link>
-              </li>
-              <li>
+              {session && session.user.data.Id_Rol !== 4 && (
+                <li>
+                  <Link
+                    href="/Tiendas"
+                    className="bg-[#a2b38b] dark:bg-gray-900  block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  >
+                    Tiendas
+                  </Link>
+                </li>
+              )}
 
+              <li>
                 {session ? (
                   <button
-                  onClick={() => signOut()} 
-                  className="bg-[#a2b38b] dark:bg-gray-900  block mr-5 py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  Cerrar Sesion
-                </button>
+                    onClick={() => signOut()}
+                    className="bg-[#a2b38b] dark:bg-gray-900  block mr-5 py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  >
+                    Cerrar Sesion
+                  </button>
                 ) : (
                   <Link
-                      className="bg-[#a2b38b] dark:bg-gray-900  block mr-5 py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700" 
-                      href={"/Login"}>
-                  Iniciar Sesion
-                </Link>
+                    className="bg-[#a2b38b] dark:bg-gray-900  block mr-5 py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    href={"/Login"}
+                  >
+                    Iniciar Sesion
+                  </Link>
                 )}
               </li>
-              <li>
+              {/* <li>
                 <div className="relative mt-3 md:hidden">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
                     <FontAwesomeIcon
@@ -172,7 +187,7 @@ const NavB = () => {
                     placeholder="Buscar..."
                   />
                 </div>
-              </li>
+              </li> */}
             </ul>
             <div className="relative hidden md:block">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
@@ -188,13 +203,9 @@ const NavB = () => {
                 className=" mr-2 block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="Buscar..."
               />
-              
             </div>
-            
           </div>
-          
         </div>
-        
       </nav>
     </>
   );

@@ -230,3 +230,25 @@
 .cont input:checked ~ svg {
   fill: #e3474f;
 }
+
+.map-overlay {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  z-index: 9999;
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+}
+
+.map-container {
+  width: 100%;
+  height: 400px; /* Ajusta la altura según tu preferencia */
+}
+
+.map-overlay button {
+  margin-top: 10px;
+}

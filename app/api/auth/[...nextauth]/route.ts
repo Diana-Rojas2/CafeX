@@ -10,12 +10,12 @@ const handler = NextAuth({
             
             name: "Credentials",
             credentials: {
-                usuario: { label: "Username", type: "text", placeholder: "jsmith" },
+                usuario: { label: "Username", type: "text" },
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials, req) {
                 const res = await fetch(
-                    `http://localhost:8080/Usuario/login`,
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL}Usuario/login`,
                     {
                         method: "POST",
                         body: JSON.stringify({
@@ -28,7 +28,6 @@ const handler = NextAuth({
                 const user = await res.json();
                 console.log(user);
                 if (user.error) {
-
                     throw user;
                 }
                 else {
@@ -39,7 +38,13 @@ const handler = NextAuth({
     ],
     callbacks : {
         async jwt({token, user}){
-            if(user) token.Id_Rol = user.Id_Rol;
+            console.log("Usuario: " + user)
+            if(user){
+                token.Id_Rol = user.Id_Rol;
+                console.log("Rol: ",user.Id_Rol);
+            } else{
+                console.log("oo");
+            }
            return {...token, ...user};
         },
         async session({session, token}){
@@ -49,8 +54,7 @@ const handler = NextAuth({
         }
     },
     pages:{
-        signIn: "/Login",
-        signOut: "/Login"
+        signIn: "/Login"
     }
 })
 

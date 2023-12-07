@@ -12,12 +12,12 @@ export default withAuth(
   },
   {
      callbacks:{
-      //authorized : ({ token }) => token?.Id_Rol === 1 || token?.Id_Rol === 3
+      ///authorized : ({ token }) => token?.role === "Admin" || token?.role === "Vendedor"
       authorized : ({ token }) => !!token
      },
 
   }
 )
 export const config = {
-  matcher: ["/Usuarios/:path*","/1/:path*"],
+  matcher: ["/Usuarios/:path*","/Admin/:path*"],
 };

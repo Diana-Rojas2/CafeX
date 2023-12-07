@@ -34,15 +34,12 @@ const LoginPage = () => {
       redirect: false,
     });
 
-    if (responseLogin?.error) {
+    if (responseLogin?.ok) {
+      console.log(session?.user.data.Id_Rol);
+      router.push("/");
+    } else {
       SetError("Usuario y/o password incorrectos");
       return;
-    } else {
-      console.log(session?.user.data.Id_Rol);
-
-        router.push("/");
-
-      
     }
   });
 

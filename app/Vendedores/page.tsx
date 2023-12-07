@@ -123,7 +123,10 @@ const SolicitudPage = () => {
                   htmlFor="terminos"
                   className="block align-middle text-sm font-bold text-gray-700 ml-2 dark:text-white"
                 >
-                  Acepto los terminos y condiciones y autorizo el uso de mis
+                  Acepto los
+                  <a href="/Terminos" className="text-blue-600 dark:text-blue-400"> Términos y Condiciones </a>
+                   
+                   y autorizo el uso de mis
                   datos
                 </label>
               </div>

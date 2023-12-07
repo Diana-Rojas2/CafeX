@@ -2,12 +2,17 @@
 import React, { useEffect, useState } from "react";
 import "public/estilo.css";
 import { useSession } from "next-auth/react";
-import Cart from "@/app/components/car";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { ILike } from "@/app/models/ILike";
 import { IEvaluacion } from "@/app/models/IEvaluacion";
 import { IUsuario } from "@/app/models/IUsuario";
+import { ICarrito } from "@/app/models/ICarrito";
+import Cart from "@/app/components/car";
+import { ITienda } from "@/app/models/ITienda";
+import ImageCarousel from "@/app/components/ImageCarousel";
+import { IVenta } from "@/app/models/IVenta";
+import { IProducto } from "@/app/models/IProducto";
 
 export interface Props {
   params: { id: number };
@@ -25,9 +30,88 @@ const ProductPage: React.FC<Props> = (props) => {
   const [rating, setRating] = useState(0);
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
+
+  ///CARRITO
+  const [cartItems, setCartItems] = useState<ICarrito[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [canComment, setCanComment] = useState(false); // Estado para habilitar/deshabilitar comentarios
+
+  useEffect(() => {
+    const checkIfCanComment = async () => {
+      try {
+        const idProducto = props.params.id;
+        const idUsuario = session?.user.data.Id;
   
+        const ventasResponse = await fetch(`http://localhost:8080/Venta/Usuario/${idUsuario}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `${session?.user?.token}`,
+          },
+        });
+  
+        if (ventasResponse.ok) {
+          const ventas = await ventasResponse.json();
+  
+          // Verificar si hay una venta del producto en cuestión y está completada
+          const ventaProductoCompletada = ventas.some((venta: any) =>
+            venta.productosVendidos.some(
+              (producto: any) =>
+                String(producto.productoId) === String(idProducto) &&
+                venta.status === "Completada"
+            )
+          );
+  
+          if (ventaProductoCompletada) {
+            setCanComment(true); // Habilitar comentarios si la venta está completada
+          }
+        } else {
+          console.error("Error al obtener las ventas:", ventasResponse.statusText);
+        }
+      } catch (error) {
+        console.error("Error al verificar la venta:", error);
+      }
+    };
+  
+    checkIfCanComment();
+  }, [props.params.id, session?.user.data.Id, session?.user.token]);
+  
+
+  const addToCart = async (product: number) => {
+    try {
+      const usuarioId = session?.user.data.Id;
+      const productoId = props.params.id;
+      console.log(product);
+
+      const headers = {
+        "Content-Type": "application/json",
+        authorization: `${session?.user?.token}`,
+      };
+
+      await axios.post(
+        `http://localhost:8080/Carrito/agregar-item/${usuarioId}`,
+        {
+          tiendaId: product,
+          productoId,
+          cantidad: 1,
+        },
+        { headers }
+      );
+
+      console.log("Product added to cart successfully!");
+      const updatedCart = [...cartItems];
+      setCartItems(updatedCart);
+      setCartOpen(true); // Abre automáticamente el carrito al agregar un producto
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+    }
+  };
+
+  const toggleCart = () => {
+    setCartOpen(!cartOpen);
+  };
+
   const obtenerComentarios = async () => {
-    // Lógica para obtener los comentarios del API
     try {
       fetch("http://localhost:8080/Evaluacion", {
         cache: "no-cache",
@@ -42,7 +126,7 @@ const ProductPage: React.FC<Props> = (props) => {
           setEvaluaciones(json);
         });
     } catch (error) {
-      console.error('Error al obtener comentarios:', error);
+      console.error("Error al obtener comentarios:", error);
     }
   };
 
@@ -104,21 +188,22 @@ const ProductPage: React.FC<Props> = (props) => {
         if (productResponse.ok) {
           const productData = await productResponse.json();
           setProduct(productData);
+          if (session?.user.data.Id_Rol === 2) {
+            const visitResponse = await fetch("http://localhost:8080/Visita", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session?.user.token}`,
+              },
+              body: JSON.stringify({
+                idProducto,
+                idUsuario,
+              }),
+            });
 
-          const visitResponse = await fetch("http://localhost:8080/Visita", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session?.user.token}`,
-            },
-            body: JSON.stringify({
-              idProducto,
-              idUsuario,
-            }),
-          });
-
-          if (visitResponse.ok) {
-            console.log("Visita registrada correctamente");
+            if (visitResponse.ok) {
+              console.log("Visita registrada correctamente");
+            }
           }
         } else {
           console.error("Error al obtener los detalles del producto");
@@ -232,28 +317,24 @@ const ProductPage: React.FC<Props> = (props) => {
     }
   };
 
-  // Función para manejar cambios en el comentario
   const handleCommentChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    setComment(event.target.value); // Actualiza el estado del comentario al valor ingresado por el usuario
+    setComment(event.target.value);
   };
 
-  // Función para manejar cambios en la calificación
   const handleRatingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedRating = parseInt(event.target.value); // Obtén el valor de la calificación seleccionada
-    const newRating = 6 - selectedRating; // Calcula la nueva calificación basada en la cantidad de estrellas seleccionadas
-    setRating(newRating); // Actualiza el estado de la calificación
-  };  
+    const selectedRating = parseInt(event.target.value);
+    const newRating = 6 - selectedRating;
+    setRating(newRating);
+  };
 
-  // enviar el comentario y la calificacion
   const submitReview = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
       const idProducto = props.params.id;
       const idUsuario = session?.user.data.Id;
 
-      // Realizar la solicitud POST al backend con los datos del comentario y la calificación
       const response = await fetch(`http://localhost:8080/Evaluacion`, {
         method: "POST",
         headers: {
@@ -271,8 +352,8 @@ const ProductPage: React.FC<Props> = (props) => {
       if (response.ok) {
         console.log("Comentario y calificación guardados correctamente");
         obtenerComentarios();
-        setComment(""); 
-        setRating(0); 
+        setComment("");
+        setRating(0);
       } else {
         console.error("Error al guardar el comentario y la calificación");
       }
@@ -314,15 +395,33 @@ const ProductPage: React.FC<Props> = (props) => {
   };
 
   return (
-    <div className="min-w-screen min-h-screen bg-gray-300 flex p-5 lg:p-10 overflow-hidden">
+    <div className="min-w-screen min-h-screen  flex p-5 lg:p-10 overflow-hidden">
+      
       <div
-        className="w-full max-w-6xl rounded bg-white shadow-xl p-10 lg:p-20 mx-auto 
+        className="w-full max-w-6xl rounded bg-white  dark:bg-gray-700 shadow-xl p-10 lg:p-20 mx-auto 
       text-gray-800  md:text-left"
       >
+        {session && session.user.data.Id_Rol === 2 && (
+                <label className="cont mb-2">
+                  <input type="checkbox" checked={liked} readOnly />
+                  <svg
+                    onClick={handleLikeClick}
+                    id="Layer_1"
+                    version="1.0"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlnsXlink="http://www.w3.org/1999/xlink"
+                  >
+                    <path d="M16.4,4C14.6,4,13,4.9,12,6.3C11,4.9,9.4,4,7.6,4C4.5,4,2,6.5,2,9.6C2,14,12,22,12,22s10-8,10-12.4C22,6.5,19.5,4,16.4,4z"></path>
+                  </svg>
+                </label>
+              )}
         {product && (
+          
           <div key={product.id} className="md:flex items-center -mx-10">
+            
             <div className="w-full md:w-1/2 px-10 mb-10 md:mb-0">
-              <div className="grid grid-cols-2 gap-4">
+              {/* <div className="grid grid-cols-2 gap-4">
                 {product.urlsImagenes.map((imageUrl: string, index: number) => (
                   <img
                     key={index}
@@ -332,25 +431,15 @@ const ProductPage: React.FC<Props> = (props) => {
                   />
                 ))}
               </div>
-              <div className="border-4 border-gray-600 mt-4 rounded-md"></div>
+              <div className="border-4 border-gray-600 mt-4 rounded-md"></div> */}
+              <ImageCarousel product={product.urlsImagenes} />
+              
             </div>
             {/*    card producto */}
 
-            <div className="w-full md:w-1/2 px-10 relative rounded-xl shadow-lg mx-auto border border-white">
-              <label className="cont mt-2">
-                <input type="checkbox" checked={liked} readOnly />
-                <svg
-                  onClick={handleLikeClick}
-                  id="Layer_1"
-                  version="1.0"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlnsXlink="http://www.w3.org/1999/xlink"
-                >
-                  <path d="M16.4,4C14.6,4,13,4.9,12,6.3C11,4.9,9.4,4,7.6,4C4.5,4,2,6.5,2,9.6C2,14,12,22,12,22s10-8,10-12.4C22,6.5,19.5,4,16.4,4z"></path>
-                </svg>
-              </label>
-              <div className="mb-5">
+            <div className="w-full md:w-1/2 px-10 relative rounded-xl dark:bg-gray-600 shadow-lg mx-auto dark:text-white">
+              
+              <div className="mb-5 mt-5">
                 <h1 className="font-bold text-2xl mb-2">{product.nombre}</h1>
                 <span className="text-2xl leading-none align-baseline">
                   {product.precio}
@@ -359,187 +448,205 @@ const ProductPage: React.FC<Props> = (props) => {
                 <p className="text-sm mb-5">{product.descripcion}</p>
               </div>
               <div className="mb-5 flex items-center justify-center h-full">
-                <button className="bg-[#2F4858] opacity-75 hover:opacity-100 text-white hover:text-gray-900 rounded-full px-10 py-2 font-semibold">
-                  <i className="mdi mdi-cart -ml-2 mr-2"></i> Agregar al carrito
-                </button>
+                {session && session.user.data.Id_Rol === 2 && (
+                  <button
+                    className="bg-[#2F4858] opacity-75 hover:opacity-100 text-white hover:text-gray-900 rounded-full px-10 py-2 font-semibold"
+                    onClick={() => addToCart(product.tienda)}
+                  >
+                    <i className="mdi mdi-cart -ml-2 mr-2"></i> Agregar al
+                    carrito
+                  </button>
+                )}
               </div>
               {/*   Comentarios  */}
               <div className="flex mx-auto items-center justify-center">
-                <form
-                  className="w-full max-w-xl bg-white rounded-lg px-4 pt-2"
-                  onSubmit={submitReview}
-                >
-                  <div className="flex flex-wrap -mx-3 mb-6" />
-                  <h2 className="px-4 pt-3 pb-2 text-gray-800 text-lg text-center">
-                    ¿Qué te pareció tu producto?
-                  </h2>
-                  {/* Estrellas nuevas */}
-                  <div className="rating flex items-center justify-center mb-2">
-                    <input
-                      type="radio"
-                      id="star-1"
-                      name="star-radio"
-                      value="1"
-                      onChange={handleRatingChange}
-                    />
-                    <label htmlFor="star-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
+                {canComment && session && session.user.data.Id_Rol === 2 && (
+                  <form
+                    className="w-full max-w-xl bg-white rounded-lg px-4 pt-2 mb-4"
+                    onSubmit={submitReview}
+                  >
+                    <div className="flex flex-wrap -mx-3 mb-6" />
+                    <>
+                      <h2 className="px-4 pt-3 pb-2 text-gray-800 text-lg text-center">
+                        ¿Qué te pareció tu producto?
+                      </h2>
+                      <div className="rating flex items-center justify-center mb-2">
+                        <input
+                          type="radio"
+                          id="star-1"
+                          name="star-radio"
+                          value="1"
+                          onChange={handleRatingChange}
+                        />
+                        <label htmlFor="star-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              pathLength="360"
+                              d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                            ></path>
+                          </svg>
+                        </label>
+                        <input
+                          type="radio"
+                          id="star-2"
+                          name="star-radio"
+                          value="2"
+                          onChange={handleRatingChange}
+                        />
+                        <label htmlFor="star-2">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              pathLength="360"
+                              d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                            ></path>
+                          </svg>
+                        </label>
+                        <input
+                          type="radio"
+                          id="star-3"
+                          name="star-radio"
+                          value="3"
+                          onChange={handleRatingChange}
+                        />
+                        <label htmlFor="star-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              pathLength="360"
+                              d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                            ></path>
+                          </svg>
+                        </label>
+                        <input
+                          type="radio"
+                          id="star-4"
+                          name="star-radio"
+                          value="4"
+                          onChange={handleRatingChange}
+                        />
+                        <label htmlFor="star-4">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              pathLength="360"
+                              d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                            ></path>
+                          </svg>
+                        </label>
+                        <input
+                          type="radio"
+                          id="star-5"
+                          name="star-radio"
+                          value="5"
+                          onChange={handleRatingChange}
+                        />
+                        <label htmlFor="star-5">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              pathLength="360"
+                              d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                            ></path>
+                          </svg>
+                        </label>
+                      </div>
+                    </>{" "}
+                    <div className="w-full md:w-full px-3 mb-2 mt-2">
+                      <textarea
+                        className="rounded border border-gray-400 leading-normal resize-none w-full h-20 py-2 px-3 font-medium placeholder-gray-500 focus:outline-none focus:bg-white"
+                        name="body"
+                        placeholder="El producto me pareció..."
+                        value={comment}
+                        onChange={handleCommentChange}
+                        required
+                      ></textarea>
+                    </div>
+                    <div className="mb-5 flex items-center justify-center h-full">
+                      <button
+                        className="bg-[#2F4858] opacity-75 hover:opacity-100 text-white hover:text-gray-900 rounded-full px-10 py-2 font-semibold"
+                        type="submit"
                       >
-                        <path
-                          pathLength="360"
-                          d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                        ></path>
-                      </svg>
-                    </label>
-                    <input
-                      type="radio"
-                      id="star-2"
-                      name="star-radio"
-                      value="2"
-                      onChange={handleRatingChange}
-                    />
-                    <label htmlFor="star-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          pathLength="360"
-                          d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                        ></path>
-                      </svg>
-                    </label>
-                    <input
-                      type="radio"
-                      id="star-3"
-                      name="star-radio"
-                      value="3"
-                      onChange={handleRatingChange}
-                    />
-                    <label htmlFor="star-3">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          pathLength="360"
-                          d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                        ></path>
-                      </svg>
-                    </label>
-                    <input
-                      type="radio"
-                      id="star-4"
-                      name="star-radio"
-                      value="4"
-                      onChange={handleRatingChange}
-                    />
-                    <label htmlFor="star-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          pathLength="360"
-                          d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                        ></path>
-                      </svg>
-                    </label>
-                    <input
-                      type="radio"
-                      id="star-5"
-                      name="star-radio"
-                      value="5"
-                      onChange={handleRatingChange}
-                    />
-                    <label htmlFor="star-5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          pathLength="360"
-                          d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                        ></path>
-                      </svg>
-                    </label>
-                  </div>{" "}
-                  {/* Terminan estrellas */}
-                  <div className="w-full md:w-full px-3 mb-2 mt-2">
-                    <textarea
-                      className="rounded border border-gray-400 leading-normal resize-none w-full h-20 py-2 px-3 font-medium placeholder-gray-500 focus:outline-none focus:bg-white"
-                      name="body"
-                      placeholder="El producto me pareció..."
-                      value={comment}
-                      onChange={handleCommentChange}
-                      required
-                    ></textarea>
-                  </div>
-                  <div className="mb-5 flex items-center justify-center h-full">
-                    <button
-                      className="bg-[#2F4858] opacity-75 hover:opacity-100 text-white hover:text-gray-900 rounded-full px-10 py-2 font-semibold"
-                      type="submit"
-                    >
-                      Guardar
-                    </button>
-                  </div>
-                </form>
-              </div>{" "}
+                        Guardar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
               {/* termina comentarios */}
             </div>
           </div>
         )}
         {!product && <p>Cargando...</p>}
         {/*   Seccion comentarios */}
-        
-            <div className="relative py-2 md:px-4 2xl:px-0 2xl:container 2xl:mx-auto flex justify-center items-center">
-              <div className="flex flex-col justify-start items-start w-full space-y-1">
-                <div className="flex justify-start items-start">
-                  <p className="text-3xl lg:text-4xl font-semibold leading-7 lg:leading-9 text-gray-800 dark:text-white ">
-                    Reviews
-                  </p>
-                </div>
-                {evaluaciones
-          .filter(
-            (evaluacion: IEvaluacion) =>
-              String(evaluacion.idProducto) === String(props.params.id)
-          )
-          .map((evaluacion: IEvaluacion) => (
+
+        <div className="relative py-2 md:px-4 2xl:px-0 2xl:container 2xl:mx-auto flex justify-center items-center">
+          <div className="flex flex-col justify-start items-start w-full space-y-1">
+            <div className="flex justify-start items-start">
+              <p className="text-3xl lg:text-4xl font-semibold leading-7 lg:leading-9 text-gray-800 dark:text-white ">
+                Reviews
+              </p>
+            </div>
+            {evaluaciones
+              .filter(
+                (evaluacion: IEvaluacion) =>
+                  String(evaluacion.idProducto) === String(props.params.id)
+              )
+              .map((evaluacion: IEvaluacion) => (
                 <div className="relative w-full flex justify-start items-start flex-col bg-gray-50 dark:bg-gray-800 p-8">
                   <div id="menu" className="md:block">
                     <div className=" flex justify-start items-center flex-row ">
                       <div className="flex  justify-start items-start ">
                         <p className=" flex flex-col text-base font-medium leading-none text-gray-800 dark:text-white">
-                        {usuarios.find((user) => user.id === evaluacion.idUsuario)?.nombre ||
-                          'Usuario no encontrado'} {usuarios.find((user) => user.id === evaluacion.idUsuario)?.apellidoPaterno ||
-                          'Usuario no encontrado'} {usuarios.find((user) => user.id === evaluacion.idUsuario)?.apellidoMaterno ||
-                          'Usuario no encontrado'}
+                          {usuarios.find(
+                            (user) => user.id === evaluacion.idUsuario
+                          )?.nombre || "Usuario no encontrado"}{" "}
+                          {usuarios.find(
+                            (user) => user.id === evaluacion.idUsuario
+                          )?.apellidoPaterno || "Usuario no encontrado"}{" "}
+                          {usuarios.find(
+                            (user) => user.id === evaluacion.idUsuario
+                          )?.apellidoMaterno || "Usuario no encontrado"}
                           <br />
-
                           <p className="text-sm ">
-                          {evaluacion.fecha instanceof Date
-                            ? evaluacion.fecha.toLocaleDateString()
-                            : evaluacion.fecha}</p>
+                            {evaluacion.fecha instanceof Date
+                              ? evaluacion.fecha.toLocaleDateString()
+                              : evaluacion.fecha}
+                          </p>
                         </p>
                       </div>
                     </div>
                     <p className="mt-2 text-base leading-normal text-justify text-gray-600 dark:text-white w-full ">
                       {evaluacion.comentario} <br />
                     </p>
-                    
 
                     <div className="absolute top-0 right-0 mt-2 mr-2">
-          <StarRating calificacion={evaluacion.calificacion} />
-        </div>
+                      <StarRating calificacion={evaluacion.calificacion} />
+                    </div>
                   </div>
                 </div>
-                ))}
-              </div>
-            </div>
-          
+              ))}
+          </div>
+        </div>
       </div>
+      {cartOpen && (
+        <Cart
+          cartItems={cartItems}
+          cartOpen={cartOpen}
+          toggleCart={toggleCart}
+        />
+      )}
     </div>
   );
 };
